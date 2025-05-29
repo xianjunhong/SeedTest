@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Compiled extensions
+*.so
+
+# Test coverage reports
+htmlcov/
+*.cover
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Ignore dataset or large file folders if needed
+data/
+*.h5
+*.ckpt
