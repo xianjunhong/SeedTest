@@ -15,21 +15,19 @@ from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QFileDialog
 from qfluentwidgets import PrimaryPushButton
 from serial.tools import list_ports
 
-from .CamOperation_class import CameraOperation
-from .my_thread.balance_thread import BalanceThread
-from .my_thread.camera_thread import CameraThread
-from .my_thread.img_processing_thread import ImageProcessingThread
-from .my_thread.trex_thread import TrexThread
-from .tools import cam_tool
-from ..aiModule import soy_pod
-from ..fieldModule.all_fields import FIELDS
-from ..hikModule.MvCameraControl_class import *
-from ..hikModule.MvErrorDefine_const import *
+from frank.aiModule import soy_pod
+from frank.fieldModule.all_fields import PodFields as FIELDS
+from frank.handleModule.CamOperation_class import CameraOperation
+from frank.handleModule.my_thread.balance_thread import BalanceThread
+from frank.handleModule.my_thread.camera_thread import CameraThread
+from frank.handleModule.my_thread.img_processing_thread import ImageProcessingThread
+from frank.handleModule.tools import cam_tool
+from frank.hikModule.MvCameraControl_class import *
+from frank.hikModule.MvErrorDefine_const import *
 
 
-class InitTab4:
+class InitPod:
     def __init__(self, ui):
-
         self.ui = ui
         self.deviceList = None
         self.cam = None
@@ -44,9 +42,6 @@ class InitTab4:
         self.balance_thread = None
         self.balance_is_open = False
         self.balance_data = 0.0
-
-        self.allow_draw = False
-
         # 读取配置文件
         self.load_config()
         # self.tab_3 = InitTab3(ui)
@@ -67,148 +62,62 @@ class InitTab4:
         self.CamExposureTime = config.getfloat('Cam', 'ExposureTime')
         self.CamGain = config.getfloat('Cam', 'Gain')
         self.CamFrameRate = config.getfloat('Cam', 'FrameRate')
-        self.ImageFolder = config.get('SavePath', 'ImageFolder')
-        self.ProcessedImageFolder = config.get('SavePath', 'ProcessedImageFolder')
+
+        self.ImageFolder = config.get('Pod', 'ImageFolder')
+        self.ProcessedImageFolder = config.get('Pod', 'ProcessedImageFolder')
         # 如果文件夹路径不存在，则建立
         if not os.path.exists(self.ImageFolder):
             os.makedirs(self.ImageFolder)
         if not os.path.exists(self.ProcessedImageFolder):
             os.makedirs(self.ProcessedImageFolder)
-        self.DataFile = config.get('Data', 'DataFile')
+        self.DataFile = config.get('Pod', 'DataFile')
 
-        self.EnableSaveInfo = config.getboolean('Data', 'EnableSaveInfo')
+        self.EnableSaveInfo = config.getboolean('Pod', 'EnableSaveInfo')
         print(self.EnableSaveInfo)
+
 
 
     def connect_signals(self):
         # 打开相机
-        self.ui.tab_4.combo_devices_cam_button.clicked.connect(self.toggle_device)
+        self.ui.tab_1.combo_devices_cam_button.clicked.connect(self.toggle_device)
         # 枚举相机
-        self.ui.tab_4.enum_devices_cam_button.clicked.connect(self.enum_devices)
+        self.ui.tab_1.enum_devices_cam_button.clicked.connect(self.enum_devices)
         # 枚举天平
-        self.ui.tab_4.btn_scan_ports.clicked.connect(self.enum_ports)
+        self.ui.tab_1.btn_scan_ports.clicked.connect(self.enum_ports)
 
         # 打开天平
-        self.ui.tab_4.btn_open_balance.clicked.connect(self.open_ports)
-        self.ui.tab_4.btn_tare_balance.clicked.connect(self.zero_balance)
+        self.ui.tab_1.btn_open_balance.clicked.connect(self.open_ports)
+        self.ui.tab_1.btn_tare_balance.clicked.connect(self.zero_balance)
 
         # 设置参数
-        self.ui.tab_4.button_set_param.clicked.connect(self.set_param)
+        self.ui.tab_1.button_set_param.clicked.connect(self.set_param)
         # 保存信息
-        self.ui.tab_4.button_save_info.clicked.connect(self.save_info)
+        self.ui.tab_1.button_save_info.clicked.connect(self.save_info)
         # 显示实时图像
-        self.ui.tab_4.button_live_img.clicked.connect(self.open_device)
+        self.ui.tab_1.button_live_img.clicked.connect(self.open_device)
         # 处理图像
-        self.ui.tab_4.button_process_img.clicked.connect(self.process_img)
+        self.ui.tab_1.button_process_img.clicked.connect(self.process_img)
         # 导出excel
         self.ui.tab_2.button_export.clicked.connect(self.export_to_excel)
-
-
-        self.ui.tab_4.btn_rect_choose.clicked.connect(self.choose_rect)
-        self.ui.tab_4.btn_clear.clicked.connect(self.clear_display_image)
 
         # # 从json加载信息
         self.load_table_data()
 
-    # 按钮打开设备和关闭设备切换
     def toggle_device(self):
         if self.cam_is_open:
             self.close_cam()
             if not self.cam_is_open:
-                self.ui.tab_4.combo_devices_cam_button.setText("打开相机")
-        #     展示一张全黑的图到display函数
-        # 创建一张黑图（480高 x 640宽 x 3通道）
+                self.ui.tab_1.combo_devices_cam_button.setText("打开相机")
+            #     展示一张全黑的图到display函数
+            # 创建一张黑图（480高 x 640宽 x 3通道）
             black_image = np.zeros((480, 640, 3), dtype=np.uint8)
-        # 显示黑图
+            # 显示黑图
             self.display_image(black_image)
 
         else:
             self.open_device()
             if self.cam_is_open:
-                self.ui.tab_4.combo_devices_cam_button.setText("关闭相机")
-
-
-    def clear_display_image(self):
-        print('点击了清理按钮')
-        if self.last_frame is not None:
-            self.display_image(self.last_frame)
-        else:
-            print("没有最后一帧图像")
-
-    # 点击拉框按钮
-    def choose_rect(self):
-        # 反转操作
-        self.allow_draw = not self.allow_draw
-
-        self.ui.tab_4.widget_display.set_allow_draw(self.allow_draw)
-
-        if self.allow_draw:
-            # 关闭相机
-            self.close_cam()
-            # 展示最后一帧
-            self.display_image(self.last_frame)
-            # 实时展示矩形过程
-            self.ui.tab_4.widget_display.rects_updated.connect(self.rects_updated)
-        # 开启trex模型线程，输入框中的prompt，然后开始loading，等结果返回停止loading
-        pass
-
-    def rects_updated(self, xmin_rel, ymin_rel, xmax_rel, ymax_rel):
-        print(f"rects_updated函数查看rect: {xmin_rel, ymin_rel, xmax_rel, ymax_rel}")
-
-        # 1. 获取 last_frame 的原始尺寸
-        height, width = self.last_frame.shape[:2]
-
-        # 2. 将相对坐标转换为绝对坐标（像素坐标）
-        xmin = int(xmin_rel * width)
-        ymin = int(ymin_rel * height)
-        xmax = int(xmax_rel * width)
-        ymax = int(ymax_rel * height)
-
-        # 显示loading动画
-        self.ui.tab_4.loading_movie.start()  # 开始播放动画
-        self.ui.tab_4.loading_label.show()
-        self.ui.tab_4.loading_label.move(
-            self.ui.tab_4.widget_display.width() // 2 - self.ui.tab_4.loading_label.width() // 2,
-            self.ui.tab_4.widget_display.height() // 2 - self.ui.tab_4.loading_label.height() // 2
-        )
-        
-        self.trex_thread = TrexThread(self.last_frame,(xmin, ymin, xmax, ymax))
-        self.trex_thread.finished.connect(self.trex_handle_finished_result)
-        self.trex_thread.failed.connect(self.trex_handle_failed_result)
-        self.trex_thread.start()
-
-        # 3. 在图像上画框
-        self.processed_img = self.last_frame.copy()
-        cv2.rectangle(self.processed_img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)  # 绿色框
-        # 4. 保存处理后的图像（可选路径）
-        print(xmin, ymin,xmax, ymax)
-        save_path = "output_with_rect.jpg"
-        cv2.imwrite(save_path, self.processed_img)
-        print(f"已保存图像到: {save_path}")
-
-    #  把bbox在self.last_frame上画出来
-    def trex_handle_finished_result(self,bbox,embedding):
-        """处理完成后恢复UI"""
-        self.ui.tab_4.loading_movie.stop()  # 停止动画
-        self.ui.tab_4.loading_label.hide()
-        self.processed_img = self.last_frame.copy()
-        for box in bbox:
-            x1, y1, x2, y2 = map(int, box)  # 或者直接 int(box[0]), int(box[1]), ...
-            cv2.rectangle(self.processed_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-        # 清理界面上的矩形框
-        self.ui.tab_4.widget_display.clear_rect()
-        self.display_image(self.processed_img)
-
-
-        print(bbox,embedding)
-
-    def trex_handle_failed_result(self,str):
-        """处理完成后恢复UI"""
-        self.ui.tab_4.loading_movie.stop()  # 停止动画
-        self.ui.tab_4.loading_label.hide()
-        print(f"trex报错啦，{str}")
-
+                self.ui.tab_1.combo_devices_cam_button.setText("关闭相机")
 
     def enum_devices(self):
         self.deviceList = cam_tool.enum_devices()
@@ -218,11 +127,11 @@ class InitTab4:
 
         dev_list = cam_tool.identify_different_devices(self.deviceList)
         # 清空设备组合框中的当前项
-        self.ui.tab_4.combo_devices_cam.clear()
+        self.ui.tab_1.combo_devices_cam.clear()
         # 将设备列表添加到设备组合框中
-        self.ui.tab_4.combo_devices_cam.addItems(dev_list)
+        self.ui.tab_1.combo_devices_cam.addItems(dev_list)
         # 设置设备组合框的当前索引为第一个项
-        self.ui.tab_4.combo_devices_cam.setCurrentIndex(0)
+        self.ui.tab_1.combo_devices_cam.setCurrentIndex(0)
 
     def enum_ports(self):
 
@@ -233,14 +142,13 @@ class InitTab4:
         #     if "USB Serial" in port.description:
         #         return port.device
         # 清空设备组合框中的当前项
-        self.ui.tab_4.combo_devices_ports.clear()
+        self.ui.tab_1.combo_devices_ports.clear()
         # 将设备列表添加到设备组合框中
-        self.ui.tab_4.combo_devices_ports.addItems(dev_list)
+        self.ui.tab_1.combo_devices_ports.addItems(dev_list)
         # 设置设备组合框的当前索引为第一个项
-        self.ui.tab_4.combo_devices_ports.setCurrentIndex(0)
+        self.ui.tab_1.combo_devices_ports.setCurrentIndex(0)
         if not dev_list:
             QMessageBox.warning(self.ui, "Error", 'No serial port detected!', QMessageBox.Ok)
-
 
     # 打开相机并开始取流
     def open_device(self):
@@ -249,7 +157,7 @@ class InitTab4:
             return MV_E_CALLORDER
 
         # 获取用户选择相机索引
-        select_cam_index = self.ui.tab_4.combo_devices_cam.currentIndex()
+        select_cam_index = self.ui.tab_1.combo_devices_cam.currentIndex()
         if select_cam_index < 0:
             QMessageBox.warning(self.ui, "Error", 'Please select a camera!', QMessageBox.Ok)
             return MV_E_CALLORDER
@@ -286,12 +194,12 @@ class InitTab4:
             return MV_E_CALLORDER
 
         # 获取用户选择天平索引
-        select_balance_index = self.ui.tab_4.combo_devices_ports.currentIndex()
+        select_balance_index = self.ui.tab_1.combo_devices_ports.currentIndex()
         if select_balance_index < 0:
             QMessageBox.warning(self.ui, "Error", 'Please select a balance!', QMessageBox.Ok)
             return MV_E_CALLORDER
 
-        self.balance_thread = BalanceThread(self.ui.tab_4.combo_devices_ports.currentText())
+        self.balance_thread = BalanceThread(self.ui.tab_1.combo_devices_ports.currentText())
         self.balance_thread.data_received.connect(self.update_balance)
 
         self.balance_thread.start()
@@ -300,7 +208,7 @@ class InitTab4:
     # 更新天平信息
     def update_balance(self, data):
         self.balance_data = data
-        self.ui.tab_4.line_weight_display.setText(data + 'g')
+        self.ui.tab_1.line_weight_display.setText(data + 'g')
 
     # 清零天平
     def zero_balance(self):
@@ -311,21 +219,10 @@ class InitTab4:
 
     # 开启相机
     def start_camera(self):
-        # 如果相机已经开了，return
         if self.cam_is_open:
             QMessageBox.warning(self.ui, "Error", 'Camera is Running!', QMessageBox.Ok)
             return
-        print("start_camera")
-        # 清理form
         self.clear_inputs()
-
-        # 关闭画框，恢复按钮
-        if self.allow_draw:
-            self.allow_draw = False
-            self.ui.tab_4.widget_display.set_allow_draw(self.allow_draw)
-            # 按钮恢复为原来的状态
-            self.ui.tab_4.btn_rect_choose.setChecked(False)
-
 
         self.cam_is_open = True
         cam_tool.start_grab(self.cam)
@@ -341,8 +238,8 @@ class InitTab4:
             return
         self.last_frame = img.copy()  # 保存最后一帧
         height, width = img.shape[:2]
-        frame_width = self.ui.tab_4.widget_display.width()
-        frame_height = self.ui.tab_4.widget_display.height()
+        frame_width = self.ui.tab_1.widget_display.width()
+        frame_height = self.ui.tab_1.widget_display.height()
         scale = min(frame_width / width, frame_height / height)
         new_width = int(width * scale)
         new_height = int(height * scale)
@@ -350,15 +247,15 @@ class InitTab4:
         h, w, ch = img_resized.shape
         bytes_per_line = ch * w
         qt_image = QImage(img_resized.data, w, h, bytes_per_line, QImage.Format_BGR888)
-        self.ui.tab_4.widget_display.setPixmap(QPixmap.fromImage(qt_image))
+        self.ui.tab_1.widget_display.setPixmap(QPixmap.fromImage(qt_image))
 
     # ch: 获取参数
     def get_param(self):
-        # # 设置自动曝光
-        # ret = self.cam.MV_CC_SetEnumValue("ExposureAuto", 1)
-        # if ret == MV_OK:
-        #     return
-        # # 如果设置自动曝光失败，则设置手动曝光
+        # 设置自动曝光
+        ret = self.cam.MV_CC_SetEnumValue("ExposureAuto", 1)
+        if ret == MV_OK:
+            return
+        # 如果设置自动曝光失败，则设置手动曝光
 
         ret = self.obj_cam_operation.Get_parameter()
         if ret != MV_OK:
@@ -366,9 +263,9 @@ class InitTab4:
             QMessageBox.warning(self.ui, "Error", strError, QMessageBox.Ok)
         else:
             print('获得参数成功')
-            self.ui.tab_4.input_ExposureTime.setText("{0:.2f}".format(self.CamExposureTime))
-            self.ui.tab_4.input_Gain.setText("{0:.2f}".format(self.CamGain))
-            self.ui.tab_4.input_FrameRate.setText("{0:.2f}".format(self.CamFrameRate))
+            self.ui.tab_1.input_ExposureTime.setText("{0:.2f}".format(self.CamExposureTime))
+            self.ui.tab_1.input_Gain.setText("{0:.2f}".format(self.CamGain))
+            self.ui.tab_1.input_FrameRate.setText("{0:.2f}".format(self.CamFrameRate))
             # 设置初始化参数
             ret = self.obj_cam_operation.Set_parameter(self.CamFrameRate, self.CamExposureTime, self.CamGain)
             if ret != MV_OK:
@@ -377,9 +274,9 @@ class InitTab4:
 
     # ch: 设置参数 | en:set param
     def set_param(self):
-        frame_rate = float(self.ui.tab_4.input_FrameRate.text() or self.CamFrameRate)
-        exposure = float(self.ui.tab_4.input_ExposureTime.text() or self.CamExposureTime)
-        gain = float(self.ui.tab_4.input_Gain.text() or self.CamGain)
+        frame_rate = float(self.ui.tab_1.input_FrameRate.text() or self.CamFrameRate)
+        exposure = int(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
+        gain = float(self.ui.tab_1.input_Gain.text() or self.CamGain)
         print(f"frame_rate = {frame_rate}")
 
         if cam_tool.is_float(frame_rate) != True or cam_tool.is_float(exposure) != True or cam_tool.is_float(gain) != True:
@@ -398,25 +295,21 @@ class InitTab4:
     def enable_controls(self):
 
         # 拍摄图像
-        self.ui.tab_4.handle_widget.setEnabled(self.cam_is_open)
-        self.ui.tab_4.button_save_info.setEnabled(self.cam_is_open)
+        self.ui.tab_1.handle_widget.setEnabled(self.cam_is_open)
+        self.ui.tab_1.button_save_info.setEnabled(self.cam_is_open)
         # 设置参数
-        self.ui.tab_4.cam_param.setEnabled(self.cam_is_open)
-        self.ui.tab_4.button_set_param.setEnabled(self.cam_is_open)
+        self.ui.tab_1.cam_param.setEnabled(self.cam_is_open)
+        self.ui.tab_1.button_set_param.setEnabled(self.cam_is_open)
         print("enable_controls完成")
-
 
     def close_cam(self):
         if self.cam_thread:
             self.cam_thread.stop()
             # 停止取流
             self.cam.MV_CC_StopGrabbing()
-            # 关闭线程
             self.cam_thread = None
             self.cam_is_open = False
             self.cam.MV_CC_CloseDevice()
-
-            print('相机已关闭')
     def close_balance(self):
         if self.balance_thread:
             self.balance_thread.stop()
@@ -428,6 +321,7 @@ class InitTab4:
         self.close_cam()
 
         print('关闭设备')
+
 
     def save_info(self):
 
@@ -493,7 +387,7 @@ class InitTab4:
 
         QMessageBox.information(self.ui, "成功", f"图片已保存: {file_path}", QMessageBox.Ok)
 
-        #     清空ui.tab_4.input_id
+        #     清空ui.tab_1.input_id
         self.clear_inputs()
         #     显示实时画面
         self.open_device()
@@ -504,19 +398,20 @@ class InitTab4:
         for field in FIELDS:
             if field.form_visible == False:
                 continue
-            widget = self.ui.tab_4.input_widgets[field.name]
+            widget = self.ui.tab_1.input_widgets[field.name]
             widget.setText(str(field.default))
 
     # 将信息填入到form中
     def fill_inputs(self, data: dict):
         for field in FIELDS:
             if field.form_visible == False:
+
                 continue
             value = data.get(field.name, field.default)
 
             formatted = str(value)
 
-            widget = self.ui.tab_4.input_widgets[field.name]
+            widget = self.ui.tab_1.input_widgets[field.name]
 
             # 如果已经有文本了，就不要set了
             if widget.text() != "":
@@ -529,7 +424,7 @@ class InitTab4:
         for field in FIELDS:
             if field.form_visible == False:
                 continue
-            text = self.ui.tab_4.input_widgets[field.name].text()
+            text = self.ui.tab_1.input_widgets[field.name].text()
             try:
                 result[field.name] = field.dtype(text)
             except:
@@ -541,35 +436,35 @@ class InitTab4:
         print('进入process_img')
         # 停止线程
         self.close_cam()
-        # 停止取流
         if self.last_frame is None:
             return
 
-
         # 显示loading动画
-        self.ui.tab_4.loading_movie.start()  # 开始播放动画
-        self.ui.tab_4.loading_label.show()
-        self.ui.tab_4.loading_label.move(
-            self.ui.tab_4.widget_display.width() // 2 - self.ui.tab_4.loading_label.width() // 2,
-            self.ui.tab_4.widget_display.height() // 2 - self.ui.tab_4.loading_label.height() // 2
+        self.ui.tab_1.loading_movie.start()  # 开始播放动画
+        self.ui.tab_1.loading_label.show()
+        self.ui.tab_1.loading_label.move(
+            self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.loading_label.width() // 2,
+            self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.loading_label.height() // 2
         )
 
         # # 显示无限旋转进度条
-        # self.ui.tab_4.progress_bar.show()
-        # self.ui.tab_4.progress_bar.move(
-        #     self.ui.tab_4.widget_display.width() // 2 - self.ui.tab_4.progress_bar.width() // 2,
-        #     self.ui.tab_4.widget_display.height() // 2 - self.ui.tab_4.progress_bar.height() // 2
+        # self.ui.tab_1.progress_bar.show()
+        # self.ui.tab_1.progress_bar.move(
+        #     self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.progress_bar.width() // 2,
+        #     self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.progress_bar.height() // 2
         # )
 
         # 禁用按钮防止重复点击
-        self.ui.tab_4.button_process_img.setEnabled(False)
-        self.ui.tab_4.button_live_img.setEnabled(False)
+        self.ui.tab_1.button_process_img.setEnabled(False)
+        self.ui.tab_1.button_live_img.setEnabled(False)
         # 这是调试用的，我不想拍摄画面，直接把图片写死
         # gray_img = cv2.cvtColor(self.last_frame, cv2.COLOR_RGB2GRAY)
-        # tmp_img = cv2.imread(r'C:\Users\Frank\Desktop\srt\tmg0.png')
-        # self.pod_thread = ImageProcessingThread(tmp_img,soy_pod.process_image)
+        # 输出当前路径
+        # print(os.getcwd())
+        tmp_img = cv2.imread(r'display_img/14892597.jpg')
+        self.pod_thread = ImageProcessingThread(tmp_img,soy_pod.process_image)
         # 这里用一个线程防止卡死
-        self.pod_thread = ImageProcessingThread(self.last_frame, soy_pod.process_image)
+        # self.pod_thread = ImageProcessingThread(self.last_frame, soy_pod.process_image)
         self.pod_thread.result_ready.connect(self.handle_image_result)
         self.pod_thread.start()
 
@@ -583,29 +478,25 @@ class InitTab4:
         self.fill_inputs(result)
         print("处理图像完成")
 
-
+    # 用来将图像展示到pixmap
     def display_image(self, img):
 
-        if img is None:
-            return
-
-        frame_width = self.ui.tab_4.widget_display.width()
-        frame_height = self.ui.tab_4.widget_display.height()
+        frame_width = self.ui.tab_1.widget_display.width()
+        frame_height = self.ui.tab_1.widget_display.height()
 
         img_resized = cam_tool.scale_img(img, frame_width, frame_height)
 
-
-        qt_image = cam_tool.convert_cv_to_qimage(img_resized)
-        self.ui.tab_4.widget_display.setPixmap(QPixmap.fromImage(qt_image))
+        h, w, ch = img_resized.shape
+        bytes_per_line = w * ch
+        qt_image = QImage(img_resized.data, w, h, bytes_per_line, QImage.Format_BGR888)
+        self.ui.tab_1.widget_display.setPixmap(QPixmap.fromImage(qt_image))
         """处理完成后恢复UI"""
-        self.ui.tab_4.loading_movie.stop()  # 停止动画
-        self.ui.tab_4.loading_label.hide()
-        # self.ui.tab_4.progress_bar.hide()  # 隐藏进度条
+        self.ui.tab_1.loading_movie.stop()  # 停止动画
+        self.ui.tab_1.loading_label.hide()
+        # self.ui.tab_1.progress_bar.hide()  # 隐藏进度条
         # 重新启用按钮
-        self.ui.tab_4.button_live_img.setEnabled(True)
-        self.ui.tab_4.button_process_img.setEnabled(True)
-
-
+        self.ui.tab_1.button_live_img.setEnabled(True)
+        self.ui.tab_1.button_process_img.setEnabled(True)
 
     def load_table_data(self):
         """ 启动时加载 pod.json 填充 table_widget """
