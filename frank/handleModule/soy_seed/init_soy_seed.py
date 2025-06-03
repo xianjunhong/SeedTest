@@ -103,7 +103,7 @@ class InitSoySeed:
         self.ui.tab_2.button_export.clicked.connect(self.export_to_excel)
 
         # 加载模型，预热模型
-        self.load_model(r"model/soybean_best.pt")
+        self.load_model(r"model/wheat_best.pt")
         # # 从json加载信息
         self.load_table_data()
 
@@ -295,7 +295,7 @@ class InitSoySeed:
     # ch: 设置参数 | en:set param
     def set_param(self):
         frame_rate = float(self.ui.tab_1.input_FrameRate.text() or self.CamFrameRate)
-        exposure = int(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
+        exposure = float(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
         gain = float(self.ui.tab_1.input_Gain.text() or self.CamGain)
         print(f"frame_rate = {frame_rate}")
 
@@ -475,12 +475,15 @@ class InitSoySeed:
         # gray_img = cv2.cvtColor(self.last_frame, cv2.COLOR_RGB2GRAY)
         # 输出当前路径
         # print(os.getcwd())
-        tmp_img = cv2.imread(r'display_img/16.jpg')
-        self.last_frame  = tmp_img
+        # tmp_img = cv2.imread(r'display_img/16.jpg')
+        # self.last_frame  = tmp_img
         # 输入图像，处理图像
-        self.pod_thread = ImageProcessingThread(tmp_img,self.dect_model)
+        # self.pod_thread = ImageProcessingThread(tmp_img,self.dect_model)
         # 这里用一个线程防止卡死
-        # self.pod_thread = ImageProcessingThread(self.last_frame, soy_pod.process_image)
+        from functools import partial
+        conf_threshold = 0.1
+        predict_func = partial(self.dect_model.predict, conf=conf_threshold)
+        self.pod_thread = ImageProcessingThread(self.last_frame, predict_func)
         self.pod_thread.result_ready.connect(self.handle_image_result)
         self.pod_thread.start()
 

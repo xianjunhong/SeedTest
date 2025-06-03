@@ -4,8 +4,8 @@ from PyQt5.QtGui import QFont, QMovie, QPainter, QPen
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QFormLayout, QHBoxLayout, QLabel, QSizePolicy, QProgressBar
 from qfluentwidgets import LineEdit, PrimaryPushButton, PushButton, ComboBox, IndeterminateProgressBar, FluentThemeColor, ToggleToolButton, ToolButton
 
-from ..aiModule.draw_rect_label import DrawRectLabel
-from ..fieldModule.all_fields import FIELDS
+from frank.aiModule.draw_rect_label import DrawRectLabel
+from frank.fieldModule.all_fields import FIELDS
 
 from qfluentwidgets import FluentIcon as FIF
 

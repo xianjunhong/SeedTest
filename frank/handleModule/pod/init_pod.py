@@ -275,7 +275,7 @@ class InitPod:
     # ch: 设置参数 | en:set param
     def set_param(self):
         frame_rate = float(self.ui.tab_1.input_FrameRate.text() or self.CamFrameRate)
-        exposure = int(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
+        exposure = float(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
         gain = float(self.ui.tab_1.input_Gain.text() or self.CamGain)
         print(f"frame_rate = {frame_rate}")
 

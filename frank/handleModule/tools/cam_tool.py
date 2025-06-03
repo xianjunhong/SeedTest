@@ -129,7 +129,7 @@ def load_json(DataFile):
     return []
 
 def save_to_json(DataFile,record):
-    """ 保存数据到 pod.json """
+    """ 保存数据到 xxx.json """
     data = load_json(DataFile)
     data.append(record)  # 添加新记录
 

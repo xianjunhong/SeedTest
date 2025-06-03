@@ -4,7 +4,7 @@ from PyQt5.QtGui import QFont, QIcon
 from qfluentwidgets import (PushButton, PrimaryPushButton,
                             LineEdit, ComboBox, TableWidget, Pivot, SegmentedWidget)
 
-from ..fieldModule.all_fields import FIELDS
+from frank.fieldModule.all_fields import FIELDS
 
 
 class Tab2Widget(QWidget):

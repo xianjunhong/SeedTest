@@ -1,9 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 
-from frank.uiModule.ui import Ui
-from frank.uiModule.tab_1 import Tab1Widget
-from frank.uiModule.tab_2 import Tab2Widget
+from frank.uiModule.sample.ui import Ui
 from frank.handleModule.init_tools import InitTools
 import sys
 

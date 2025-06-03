@@ -8,15 +8,15 @@ from datetime import datetime
 import cv2
 import numpy as np
 import pandas as pd
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QFileDialog
 from qfluentwidgets import PrimaryPushButton
 from serial.tools import list_ports
 
-from frank.aiModule import soy_pod
-from frank.fieldModule.all_fields import PodFields as FIELDS
+from frank.aiModule import image_acquisition
+from frank.fieldModule.all_fields import ImageAcquisitionFields as FIELDS
 from frank.handleModule.CamOperation_class import CameraOperation
 from frank.handleModule.my_thread.balance_thread import BalanceThread
 from frank.handleModule.my_thread.camera_thread import CameraThread
@@ -26,7 +26,7 @@ from frank.hikModule.MvCameraControl_class import *
 from frank.hikModule.MvErrorDefine_const import *
 
 
-class InitPod:
+class InitAcquisition(object):
     def __init__(self, ui):
         self.ui = ui
         self.deviceList = None
@@ -44,8 +44,15 @@ class InitPod:
         self.balance_data = 0.0
         # 读取配置文件
         self.load_config()
-        # self.tab_3 = InitTab3(ui)
+
         self.connect_signals()
+
+    #     每五秒执行一次self.save_info()
+        # 设置定时器，每5秒调用一次 save_info
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.save_info)
+        # self.timer.start(5000)  # 5000 毫秒 = 5 秒
+
 
     def load_config(self):
         # 读取配置文件
@@ -63,16 +70,36 @@ class InitPod:
         self.CamGain = config.getfloat('Cam', 'Gain')
         self.CamFrameRate = config.getfloat('Cam', 'FrameRate')
 
-        self.ImageFolder = config.get('Pod', 'ImageFolder')
-        self.ProcessedImageFolder = config.get('Pod', 'ProcessedImageFolder')
+        self.ImageFolder = config.get('ImageAcquisition', 'ImageFolder')
+        self.ProcessedImageFolder = config.get('ImageAcquisition', 'ProcessedImageFolder')
         # 如果文件夹路径不存在，则建立
         if not os.path.exists(self.ImageFolder):
             os.makedirs(self.ImageFolder)
         if not os.path.exists(self.ProcessedImageFolder):
             os.makedirs(self.ProcessedImageFolder)
-        self.DataFile = config.get('Pod', 'DataFile')
+        self.DataFile = config.get('ImageAcquisition', 'DataFile')
+        # 如果 文件不存在，则建立
+        # 检查文件是否存在，如果不存在则创建
+        # 检查并创建父目录和文件
+        if not os.path.exists(self.DataFile):
+            try:
+                # 获取父目录
+                parent_dir = os.path.dirname(self.DataFile)
+                # 如果父目录不存在，创建它
+                if parent_dir and not os.path.exists(parent_dir):
+                    os.makedirs(parent_dir)
+                    print(f"Created directory: {parent_dir}")
+                # 创建文件（空 JSON 文件）
+                with open(self.DataFile, 'w') as f:
+                    f.write('[]')  # 写入空的 JSON 列表
+                print(f"Created file: {self.DataFile}")
+            except Exception as e:
+                print(f"Failed to create file {self.DataFile}: {e}")
+                return
 
-        self.EnableSaveInfo = config.getboolean('Pod', 'EnableSaveInfo')
+
+
+        self.EnableSaveInfo = config.getboolean('ImageAcquisition', 'EnableSaveInfo')
         print(self.EnableSaveInfo)
 
 
@@ -252,9 +279,9 @@ class InitPod:
     # ch: 获取参数
     def get_param(self):
         # 设置自动曝光
-        ret = self.cam.MV_CC_SetEnumValue("ExposureAuto", 1)
-        if ret == MV_OK:
-            return
+        # ret = self.cam.MV_CC_SetEnumValue("ExposureAuto", 1)
+        # if ret == MV_OK:
+        #     return
         # 如果设置自动曝光失败，则设置手动曝光
 
         ret = self.obj_cam_operation.Get_parameter()
@@ -275,7 +302,7 @@ class InitPod:
     # ch: 设置参数 | en:set param
     def set_param(self):
         frame_rate = float(self.ui.tab_1.input_FrameRate.text() or self.CamFrameRate)
-        exposure = int(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
+        exposure = float(self.ui.tab_1.input_ExposureTime.text() or self.CamExposureTime)
         gain = float(self.ui.tab_1.input_Gain.text() or self.CamGain)
         print(f"frame_rate = {frame_rate}")
 
@@ -324,17 +351,10 @@ class InitPod:
 
 
     def save_info(self):
+        print("Saving info ")
 
         # uuid随机一个file_name
         uid = str(uuid.uuid4().int)[:8]  # 生成 8 位短 UUID
-
-        # 保存图片
-        # ret ,file_name= self.obj_cam_operation.Save_jpg(self.ImageFolder, uid)
-        # if ret != MV_OK:
-        #     QMessageBox.warning(self.ui, "Error", f"保存图片失败: {ToHexStr(ret)}", QMessageBox.Ok)
-        #     return
-
-
 
         # 打开这一行，可以做到直接能够保存信息
         if self.EnableSaveInfo:
@@ -385,12 +405,13 @@ class InitPod:
         # 在表格中添加信息
         self.add_to_table_row(record)
 
-        QMessageBox.information(self.ui, "成功", f"图片已保存: {file_path}", QMessageBox.Ok)
+        # QMessageBox.information(self.ui, "成功", f"图片已保存: {file_path}", QMessageBox.Ok)
 
         #     清空ui.tab_1.input_id
         self.clear_inputs()
         #     显示实时画面
-        self.open_device()
+        if self.cam_is_open is False:
+            self.open_device()
         # 清理processed_img
         self.processed_img = None
 
@@ -447,12 +468,7 @@ class InitPod:
             self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.loading_label.height() // 2
         )
 
-        # # 显示无限旋转进度条
-        # self.ui.tab_1.progress_bar.show()
-        # self.ui.tab_1.progress_bar.move(
-        #     self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.progress_bar.width() // 2,
-        #     self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.progress_bar.height() // 2
-        # )
+
 
         # 禁用按钮防止重复点击
         self.ui.tab_1.button_process_img.setEnabled(False)
@@ -461,12 +477,12 @@ class InitPod:
         # gray_img = cv2.cvtColor(self.last_frame, cv2.COLOR_RGB2GRAY)
         # 输出当前路径
         # print(os.getcwd())
-        tmp_img = cv2.imread(r'display_img/14892597.jpg')
-        self.pod_thread = ImageProcessingThread(tmp_img,soy_pod.process_image)
+        # tmp_img = cv2.imread(r'display_img/14892597.jpg')
+        # self.pod_thread = ImageProcessingThread(tmp_img,soy_pod.process_image)
         # 这里用一个线程防止卡死
-        # self.pod_thread = ImageProcessingThread(self.last_frame, soy_pod.process_image)
-        self.pod_thread.result_ready.connect(self.handle_image_result)
-        self.pod_thread.start()
+        self.image_acquisition_thread = ImageProcessingThread(self.last_frame, image_acquisition.process_image)
+        self.image_acquisition_thread.result_ready.connect(self.handle_image_result)
+        self.image_acquisition_thread.start()
 
     # 处理图像结果
     def handle_image_result(self, result):

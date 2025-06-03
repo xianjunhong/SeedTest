@@ -12,6 +12,8 @@ from frank.handleModule.count_anything.init_count_anything import InitCountAnyth
 from frank.handleModule.pod.init_pod import InitPod
 from frank.handleModule.soy_seed.init_soy_seed import InitSoySeed
 from frank.uiModule.count_anything.count_anything_ui import CountAnythingUi
+from frank.uiModule.image_acquisition.image_acquisition_ui import ImageAcquisitionUi
+from frank.handleModule.image_acquisition.init_image_acquisition import InitAcquisition
 from frank.uiModule.pod.pod_ui import PodUi
 from frank.uiModule.soy_seed.soy_seed_ui import SoySeedUi
 from until import create_centered_square_pixmap
@@ -85,7 +87,8 @@ class CropHomePage(QWidget):
 
         # 通用分组
         content_layout.addWidget(self.create_group("通用考种", [
-            ("icons/count_anything.png", "图像分析", lambda: switch_func("count_anything"))
+            ("icons/count_anything.png", "图像分析", lambda: switch_func("count_anything")),
+            ("icons/orange_cat.png", "图像采集", lambda: switch_func("image_acquisition"))
         ]))
 
         # 总布局
@@ -158,6 +161,20 @@ class CountAnythingPage(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
+class ImageAcquisition(QWidget):
+    def __init__(self, switch_back):
+        super().__init__()
+        self.ui = ImageAcquisitionUi()
+        self.init_tools = InitAcquisition(self.ui)
+        layout = QVBoxLayout()
+        layout.addWidget(self.ui)
+        back_btn = QPushButton("返回")
+        back_btn.setFixedHeight(10)
+        back_btn.clicked.connect(switch_back)
+        layout.addWidget(back_btn)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -169,13 +186,16 @@ class MainWindow(QWidget):
         self.stack = QStackedWidget(self)
         layout = QVBoxLayout(self)
         layout.addWidget(self.stack)
-
+        # 一个字典，存储已创建的页面实例（键为页面名称，值为页面对象），避免重复创建页面。
         self.page_instances = {}
+
+        # 一个字典，存储页面名称到页面创建函数的映射，页面创建函数是 lambda 表达式，用于延迟实例化页面。
         self.page_creators = {
             "home": lambda: CropHomePage(self.switch_page),
             "pod": lambda: PodPage(lambda: self.switch_page("home")),
             "soy_seed": lambda: SoySeedPage(lambda: self.switch_page("home")),
             "count_anything": lambda: CountAnythingPage(lambda: self.switch_page("home")),
+            "image_acquisition": lambda: ImageAcquisition(lambda: self.switch_page("home")),
             # 添加其他页面创建器
         }
 

@@ -46,8 +46,6 @@ class PodUi(QWidget):
 
         self.add_sound()
 
-
-
     def add_sound(self):
         self.click_sound = QSoundEffect()
         # 修改为绝对路径测试（确保文件存在）
