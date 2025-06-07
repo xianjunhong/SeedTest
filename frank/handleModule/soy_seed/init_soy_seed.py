@@ -22,6 +22,7 @@ from frank.handleModule.my_thread.balance_thread import BalanceThread
 from frank.handleModule.my_thread.camera_thread import CameraThread
 from frank.handleModule.my_thread.img_processing_thread import ImageProcessingThread
 from frank.handleModule.my_thread.model_loader_thread import ModelLoaderThread
+from frank.handleModule.my_thread.sahi_img_processing_thread import SahiImageProcessingThread
 from frank.handleModule.tools import cam_tool
 from frank.hikModule.MvCameraControl_class import *
 from frank.hikModule.MvErrorDefine_const import *
@@ -103,7 +104,7 @@ class InitSoySeed:
         self.ui.tab_2.button_export.clicked.connect(self.export_to_excel)
 
         # 加载模型，预热模型
-        self.load_model(r"model/wheat_best.pt")
+        self.load_model(r"model/n_wheat.pt")
         # # 从json加载信息
         self.load_table_data()
 
@@ -480,29 +481,34 @@ class InitSoySeed:
         # 输入图像，处理图像
         # self.pod_thread = ImageProcessingThread(tmp_img,self.dect_model)
         # 这里用一个线程防止卡死
-        from functools import partial
-        conf_threshold = 0.1
-        predict_func = partial(self.dect_model.predict, conf=conf_threshold)
-        self.pod_thread = ImageProcessingThread(self.last_frame, predict_func)
+
+        # 创建 SAHI 处理线程
+        # self.pod_thread = ImageProcessingThread(self.last_frame, self.dect_model)
+        self.pod_thread = SahiImageProcessingThread(self.last_frame, self.dect_model)
         self.pod_thread.result_ready.connect(self.handle_image_result)
         self.pod_thread.start()
 
     # 处理图像结果
     def handle_image_result(self, results):
 
-        if results is None:
-            return
-        self.processed_img = self.paint_dect_result(results)
+        # if len(results.object_prediction_list) == 0 or self.last_frame is None:
+        #     return
+        # if len(results[0]) == 0 or self.last_frame is None:
+        #     return
+        # self.processed_img = self.paint_dect_result(results)
+        self.processed_img = self.paint_sahi_dect_result(results,self.last_frame.copy())
         self.display_image(self.processed_img)
 
         # 传入的要是一个字典
         result = dict()
-        result["num"] = len(results[0])
+        # result["num"] = len(results[0])
+        result["num"] = len(results.object_prediction_list)
         # 将结果填充到form
         self.fill_inputs(result)
         print("处理图像完成")
 
     # 用来将图像展示到pixmap
+    
     def display_image(self, img):
 
         frame_width = self.ui.tab_1.widget_display.width()
@@ -680,3 +686,26 @@ class InitSoySeed:
                 cv2.circle(img, center, point_radius, point_color, thickness)
 
             return img
+
+    def paint_sahi_dect_result(self, results,img):
+
+        h, w, _ = img.shape
+        point_radius = max(int(min(w, h) * 0.005), 1)
+        point_color = (0, 0, 255)
+        thickness = -1
+        distance_threshold = max(int(min(w, h) * 0.02), 5)
+
+        centers = []
+
+        for box in results.object_prediction_list:
+            # 提取边界框坐标
+            x1, y1, x2, y2 = box.bbox.to_xyxy()
+            # 计算中心点
+            center_x = int((x1 + x2) / 2)
+            center_y = int((y1 + y2) / 2)
+            centers.append((center_x, center_y))
+            # 在图像上绘制点
+            cv2.circle(img, (center_x, center_y), point_radius, point_color, thickness)
+
+        return img
+
