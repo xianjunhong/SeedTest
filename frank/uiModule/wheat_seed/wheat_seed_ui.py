@@ -4,11 +4,12 @@ from PyQt5.QtMultimedia import QSoundEffect
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QDesktopWidget, QStackedWidget
 from qfluentwidgets import (SegmentedWidget)
 
-from .soy_seed_home import SoySeedHome
-from .soy_seed_data import SoySeedData
 
 
-class SoySeedUi(QWidget):
+from .wheat_seed_home import WheatSeedHome
+from .wheat_seed_data import WheatSeedData
+
+class WheatSeedUi(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -24,13 +25,13 @@ class SoySeedUi(QWidget):
         # 关键！设置主窗口布局
         self.main_window_layout = QVBoxLayout(self)
 
-        self.tab_1 = SoySeedHome()
-        self.tab_2 = SoySeedData()
+        self.tab_1 = WheatSeedHome()
+        self.tab_2 = WheatSeedData()
 
 
 
         # 添加标签页
-        self.addSubInterface(self.tab_1, 'tab_1', '大豆籽粒考种')
+        self.addSubInterface(self.tab_1, 'tab_1', '小麦籽粒考种')
         self.addSubInterface(self.tab_2, 'tab_2', '数据管理')
 
 

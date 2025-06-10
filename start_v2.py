@@ -11,11 +11,13 @@ from PyQt5.QtCore import Qt
 from frank.handleModule.count_anything.init_count_anything import InitCountAnything
 from frank.handleModule.pod.init_pod import InitPod
 from frank.handleModule.soy_seed.init_soy_seed import InitSoySeed
+from frank.handleModule.wheat_seed.init_wheat_seed import InitWheatSeed
 from frank.uiModule.count_anything.count_anything_ui import CountAnythingUi
 from frank.uiModule.image_acquisition.image_acquisition_ui import ImageAcquisitionUi
 from frank.handleModule.image_acquisition.init_image_acquisition import InitAcquisition
 from frank.uiModule.pod.pod_ui import PodUi
 from frank.uiModule.soy_seed.soy_seed_ui import SoySeedUi
+from frank.uiModule.wheat_seed.wheat_seed_ui import WheatSeedUi
 from until import create_centered_square_pixmap
 
 class CardButton(QFrame):
@@ -82,7 +84,7 @@ class CropHomePage(QWidget):
 
         # 小麦分组
         content_layout.addWidget(self.create_group("小麦", [
-            ("icons/no.png", "籽粒考种", lambda: switch_func("wheat_seed"))
+            ("icons/wheat_seed.png", "籽粒考种", lambda: switch_func("wheat_seed"))
         ]))
 
         # 通用分组
@@ -176,6 +178,21 @@ class ImageAcquisition(QWidget):
         self.setLayout(layout)
 
 
+class WheatSeedPage(QWidget):
+    def __init__(self, switch_back):
+        super().__init__()
+        self.ui = WheatSeedUi()
+        self.init_tools = InitWheatSeed(self.ui)
+        layout = QVBoxLayout()
+        layout.addWidget(self.ui)
+        back_btn = QPushButton("返回")
+        back_btn.setFixedHeight(10)
+        back_btn.clicked.connect(switch_back)
+        layout.addWidget(back_btn)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -196,6 +213,7 @@ class MainWindow(QWidget):
             "soy_seed": lambda: SoySeedPage(lambda: self.switch_page("home")),
             "count_anything": lambda: CountAnythingPage(lambda: self.switch_page("home")),
             "image_acquisition": lambda: ImageAcquisition(lambda: self.switch_page("home")),
+            "wheat_seed": lambda: WheatSeedPage(lambda: self.switch_page("home")),
             # 添加其他页面创建器
         }
 

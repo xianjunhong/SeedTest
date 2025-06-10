@@ -24,7 +24,7 @@ class ModelLoaderThread(QThread):
             model = AutoDetectionModel.from_pretrained(
                 model_type='yolov8',  # 根据你的模型类型调整
                 model_path=self.model_path,
-                confidence_threshold=0.3,
+                confidence_threshold=0.5,
                 device="cuda:0"
             )
 

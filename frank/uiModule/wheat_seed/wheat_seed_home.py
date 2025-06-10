@@ -4,9 +4,9 @@ from PyQt5.QtGui import QFont, QMovie
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QFormLayout, QHBoxLayout, QLabel, QSizePolicy, QProgressBar
 from qfluentwidgets import LineEdit, PrimaryPushButton, PushButton, ComboBox, IndeterminateProgressBar, FluentThemeColor, Slider
 
-from frank.fieldModule.all_fields import SoySeedFields as FIELDS
+from frank.fieldModule.all_fields import WheatSeedFields as FIELDS
 
-class SoySeedHome(QWidget):
+class WheatSeedHome(QWidget):
     def __init__(self):
         super().__init__()
         self.setup_ui()

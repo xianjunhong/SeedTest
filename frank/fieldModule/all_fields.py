@@ -18,7 +18,7 @@ PodFields = [
 
 ]
 
-# 籽粒的参数
+# 大豆籽粒的参数
 SoySeedFields = [
     FieldConfig("id", "产品编号", str, "",False,True),
     FieldConfig("name", "名称", str, "",True,True),
@@ -44,10 +44,22 @@ CountAnythingFields = [
 ]
 
 
-# 籽粒的参数
+# 图像获取参数
 ImageAcquisitionFields = [
     FieldConfig("id", "产品编号", str, "",False,True),
     FieldConfig("name", "名称", str, "",True,True),
+    FieldConfig("weight", "重量", float, "0",False,True),
+    FieldConfig("create_time", "创建时间", str, "",False,True),
+    # FieldConfig("test_field", "测试字段", str, "",True,True),
+    FieldConfig("operator", "操作", str, "",False,True),
+
+]
+
+# 小麦籽粒的参数
+WheatSeedFields = [
+    FieldConfig("id", "产品编号", str, "",False,True),
+    FieldConfig("name", "名称", str, "",True,True),
+    FieldConfig("num", "籽粒个数", int, "",True,True),
     FieldConfig("weight", "重量", float, "0",False,True),
     FieldConfig("create_time", "创建时间", str, "",False,True),
     # FieldConfig("test_field", "测试字段", str, "",True,True),

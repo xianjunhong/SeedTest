@@ -17,8 +17,10 @@ from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox, QFileDialog
 from qfluentwidgets import PrimaryPushButton
 from serial.tools import list_ports
 
-from frank.aiModule import soy_pod
-from frank.fieldModule.all_fields import SoySeedFields as FIELDS
+
+from frank.fieldModule.all_fields import WheatSeedFields as FIELDS
+
+
 from frank.handleModule.CamOperation_class import CameraOperation
 from frank.handleModule.my_thread.balance_thread import BalanceThread
 from frank.handleModule.my_thread.camera_thread import CameraThread
@@ -30,7 +32,7 @@ from frank.hikModule.MvCameraControl_class import *
 from frank.hikModule.MvErrorDefine_const import *
 
 
-class InitSoySeed:
+class InitWheatSeed:
     def __init__(self, ui):
         self.ui = ui
         self.deviceList = None
@@ -56,6 +58,7 @@ class InitSoySeed:
 
         self.connect_signals()
         self.dect_model = None
+        self.have_complete_img = True
         self.have_load_model = False
 
     def load_config(self):
@@ -74,14 +77,14 @@ class InitSoySeed:
         self.CamGain = config.getfloat('Cam', 'Gain')
         self.CamFrameRate = config.getfloat('Cam', 'FrameRate')
 
-        self.ImageFolder = config.get('SoySeed', 'ImageFolder')
-        self.ProcessedImageFolder = config.get('SoySeed', 'ProcessedImageFolder')
+        self.ImageFolder = config.get('WheatSeed', 'ImageFolder')
+        self.ProcessedImageFolder = config.get('WheatSeed', 'ProcessedImageFolder')
         # 如果文件夹路径不存在，则建立
         if not os.path.exists(self.ImageFolder):
             os.makedirs(self.ImageFolder)
         if not os.path.exists(self.ProcessedImageFolder):
             os.makedirs(self.ProcessedImageFolder)
-        self.DataFile = config.get('SoySeed', 'DataFile')
+        self.DataFile = config.get('WheatSeed', 'DataFile')
         directory = os.path.dirname(self.DataFile)
         # 如果目录不存在，创建父目录
         if directory:
@@ -93,9 +96,10 @@ class InitSoySeed:
                 json.dump([], f)
             print(f"在 {self.DataFile} 创建了新的 JSON 文件，包含空列表")
 
-        self.EnableSaveInfo = config.getboolean('SoySeed', 'EnableSaveInfo')
-        self.ModulePath = config.get('SoySeed', 'ModulePath')
 
+
+        self.EnableSaveInfo = config.getboolean('WheatSeed', 'EnableSaveInfo')
+        self.ModulePath = config.get('WheatSeed', 'ModulePath')
 
 
 
@@ -153,6 +157,7 @@ class InitSoySeed:
         self.dect_model = model
         print("模型加载完成 ✅")
         self.have_load_model = True
+
         InfoBar.success(
             title='模型加载成功',
             content='目标检测模型已成功加载！',
@@ -323,7 +328,10 @@ class InitSoySeed:
         h, w, ch = img_resized.shape
         bytes_per_line = ch * w
         qt_image = QImage(img_resized.data, w, h, bytes_per_line, QImage.Format_BGR888)
-        self.ui.tab_1.widget_display.setPixmap(QPixmap.fromImage(qt_image))
+        # self.ui.tab_1.widget_display.setPixmap(QPixmap.fromImage(qt_image))
+        if self.have_complete_img is True:
+            self.have_complete_img = False
+            self.process_img()
 
     # ch: 获取参数
     def get_param(self):
@@ -414,7 +422,7 @@ class InitSoySeed:
 
         # 保存处理后的图像
         if self.processed_img is not None:
-            cv2.imwrite(os.path.join(self.ProcessedImageFolder, f"processed_{uid}.jpg"), self.processed_img)
+            cv2.imwrite(os.path.join(self.ProcessedImageFolder, f"processed_{uid}.png"), self.processed_img)
         else:
             QMessageBox.warning(self.ui, "Error", "保存失败", QMessageBox.Ok)
             return
@@ -434,7 +442,7 @@ class InitSoySeed:
             record['name'] = uid
 
         # 计算图片的 **绝对路径**
-        file_path = os.path.abspath(os.path.join(self.ProcessedImageFolder, f"processed_{uid}.jpg"))
+        file_path = os.path.abspath(os.path.join(self.ProcessedImageFolder, f"processed_{uid}.png"))
 
         # 获取当前时间
         now = datetime.now()
@@ -501,26 +509,23 @@ class InitSoySeed:
     def process_img(self):
         # 可以继续采集
         print('进入process_img')
-        # 停止线程
-        self.close_cam()
-        if self.last_frame is None:
-            return
+        # # 停止线程
+        # self.close_cam()
+        # if self.last_frame is None:
+        #     return
+        #
+        # # 显示loading动画
+        # self.ui.tab_1.loading_movie.start()  # 开始播放动画
+        # self.ui.tab_1.loading_label.show()
+        # self.ui.tab_1.loading_label.move(
+        #     self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.loading_label.width() // 2,
+        #     self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.loading_label.height() // 2
+        # )
+        # # 禁用按钮防止重复点击
+        # self.ui.tab_1.button_process_img.setEnabled(False)
+        # self.ui.tab_1.button_live_img.setEnabled(False)
 
-        # 显示loading动画
-        self.ui.tab_1.loading_movie.start()  # 开始播放动画
-        self.ui.tab_1.loading_label.show()
-        self.ui.tab_1.loading_label.move(
-            self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.loading_label.width() // 2,
-            self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.loading_label.height() // 2
-        )
-
-
-
-        # 禁用按钮防止重复点击
-        self.ui.tab_1.button_process_img.setEnabled(False)
-        self.ui.tab_1.button_live_img.setEnabled(False)
         # 这是调试用的，我不想拍摄画面，直接把图片写死
-
         # tmp_img = cv2.imread(r'display_img/16.jpg')
         # self.last_frame  = tmp_img
         # 输入图像，处理图像
@@ -543,6 +548,7 @@ class InitSoySeed:
         # self.processed_img = self.paint_dect_result(results,self.last_frame.copy(),self.select_confidence_radio,self.select_area_radio)
         self.processed_img = self.paint_sahi_dect_result(results,self.last_frame.copy(),self.select_confidence_radio,self.select_area_radio)
         self.display_image(self.processed_img)
+        self.have_complete_img = True
         self.dect_results = results
 
 
@@ -747,7 +753,6 @@ class InitSoySeed:
         self.fill_inputs(result)
 
         return img  # 返回绘制后的图像
-
     def paint_sahi_dect_result(self, results, img, select_confidence_radio, select_area_radio):
         h, w, _ = img.shape
         point_radius = max(int(min(w, h) * 0.005), 1)
@@ -783,7 +788,7 @@ class InitSoySeed:
             cnt += 1
             cv2.circle(img, (center_x, center_y), point_radius, point_color, thickness)
 
-        print(f"cnt:{cnt}")
+
         # 传入的要是一个字典
         result = dict()
         # result["num"] = len(results[0])
