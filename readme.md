@@ -6,14 +6,14 @@
 
 ## 📦 环境安装
 
-### 使用 conda 推荐方式
+### 使用 conda 一些环境
 
 ```bash
-conda env create -f environment.yml
-conda activate TestPodSeed
+conda env create -f environment.yaml
+conda activate SeedTest
 ```
 
-### 或者使用 pip
+### 使用 pip 装一些环境
 
 ```bash
 pip install -r requirements.txt
@@ -24,7 +24,7 @@ pip install -r requirements.txt
 ## 🚀 如何运行
 
 ```bash
-python start.py
+python start_v2.py
 ```
 
 ---
@@ -66,3 +66,12 @@ git lfs pull
 
 如有任何问题或合作意向，欢迎联系项目作者：[@xianjunhong](https://github.com/xianjunhong)
 邮箱：xian_junhong@163.com
+
+
+
+| 时间点 | 绿叶面积 | 黄叶面积 | 小区面积（可省略） |
+| --- | ---- | ---- | --------- |
+| 1   | 0.30 | 0.05 | 1.0       |
+| 2   | 0.35 | 0.10 | 1.0       |
+| 3   | 0.32 | 0.20 | 1.0       |
+| ... | ...  | ...  | ...       |

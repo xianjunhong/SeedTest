@@ -404,6 +404,11 @@ class InitSoySeed:
         # uuid随机一个file_name
         uid = str(uuid.uuid4().int)[:8]  # 生成 8 位短 UUID
 
+        # 保存处理后的图像
+        if float(self.balance_data) < 0.0:
+            QMessageBox.warning(self.ui, "Error", "天平信息异常", QMessageBox.Ok)
+            return
+
 
 
 
@@ -528,8 +533,8 @@ class InitSoySeed:
 
 
         # 创建 SAHI 处理线程
-        # self.pod_thread = ImageProcessingThread(self.last_frame, self.dect_model)
-        self.pod_thread = SahiImageProcessingThread(self.last_frame, self.dect_model)
+        self.pod_thread = ImageProcessingThread(self.last_frame, self.dect_model)
+        # self.pod_thread = SahiImageProcessingThread(self.last_frame, self.dect_model)
         self.pod_thread.result_ready.connect(self.handle_image_result)
         self.pod_thread.start()
 
@@ -540,8 +545,8 @@ class InitSoySeed:
         #     return
         # if len(results[0]) == 0 or self.last_frame is None:
         #     return
-        # self.processed_img = self.paint_dect_result(results,self.last_frame.copy(),self.select_confidence_radio,self.select_area_radio)
-        self.processed_img = self.paint_sahi_dect_result(results,self.last_frame.copy(),self.select_confidence_radio,self.select_area_radio)
+        self.processed_img = self.paint_dect_result(results,self.last_frame.copy(),self.select_confidence_radio,self.select_area_radio)
+        # self.processed_img = self.paint_sahi_dect_result(results,self.last_frame.copy(),self.select_confidence_radio,self.select_area_radio)
         self.display_image(self.processed_img)
         self.dect_results = results
 
@@ -795,12 +800,15 @@ class InitSoySeed:
 
     def update_confidence_radio(self,val):
         self.select_confidence_radio = val
-        self.processed_img = self.paint_sahi_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
+        self.processed_img = self.paint_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
+        # self.processed_img = self.paint_sahi_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
         self.display_image(self.processed_img)
 
 
     def  update_area_radio(self,val):
         self.select_area_radio = val
-        self.processed_img = self.paint_sahi_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
+        self.processed_img = self.paint_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
+        # self.processed_img = self.paint_sahi_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
+        self.display_image(self.processed_img)
         self.display_image(self.processed_img)
 
