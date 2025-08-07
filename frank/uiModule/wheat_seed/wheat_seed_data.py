@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QLabe
 from PyQt5.QtCore import Qt,QSize
 from PyQt5.QtGui import QFont, QIcon
 from qfluentwidgets import (PushButton, PrimaryPushButton,
-                            LineEdit, ComboBox, TableWidget, Pivot, SegmentedWidget)
+                            LineEdit, ComboBox, TableWidget, Pivot, SegmentedWidget, FluentIcon, PrimaryToolButton)
 
 from frank.fieldModule.all_fields import WheatSeedFields as FIELDS
 
@@ -42,11 +42,22 @@ class WheatSeedData(QWidget):
         self.table_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.tab_2_layout.addWidget(self.table_widget)
 
+
+        self.table_operation = QWidget()
+        self.table_operation_layout = QHBoxLayout()
+        self.table_operation.setLayout(self.table_operation_layout)
+
+
         self.button_export = PrimaryPushButton("导出为 Excel")
-        self.button_export.setMinimumHeight(70)
+        self.clear_all = PrimaryToolButton(FluentIcon.DELETE)
+        self.clear_all.setMinimumHeight(50)
+        self.button_export.setMinimumHeight(50)
         font = QFont("Arial", 20)
         font.setBold(True)
         self.button_export.setFont(font)
+        self.clear_all.setFont(font)
+        self.table_operation_layout.addWidget(self.button_export)
+        self.table_operation_layout.addWidget(self.clear_all)
 
 
-        self.tab_2_layout.addWidget(self.button_export )
+        self.tab_2_layout.addWidget(self.table_operation )

@@ -76,6 +76,8 @@ class InitWheatSeed:
         self.CamExposureTime = config.getfloat('Cam', 'ExposureTime')
         self.CamGain = config.getfloat('Cam', 'Gain')
         self.CamFrameRate = config.getfloat('Cam', 'FrameRate')
+        self.CmPerPixel = config.getfloat('Cam', 'CmPerPixel')
+
 
         self.ImageFolder = config.get('WheatSeed', 'ImageFolder')
         self.ProcessedImageFolder = config.get('WheatSeed', 'ProcessedImageFolder')
@@ -125,9 +127,12 @@ class InitWheatSeed:
         self.ui.tab_1.button_process_img.clicked.connect(self.process_img)
         # 导出excel
         self.ui.tab_2.button_export.clicked.connect(self.export_to_excel)
+        # 清空表格和json
+        self.ui.tab_2.clear_all.clicked.connect(self.clear_table_and_json)
 
         self.ui.tab_1.select_confidence_input.valueChanged.connect(self.update_confidence_radio)
         self.ui.tab_1.select_area_input.valueChanged.connect(self.update_area_radio)
+
 
         # 加载模型，预热模型
         self.load_model(self.ModulePath)
@@ -135,7 +140,9 @@ class InitWheatSeed:
         self.load_table_data()
 
     def load_model(self,model_path):
-
+        # 调试用的
+        # self.cam_is_open = True
+        # self.enable_controls()
         print("正在加载模型...")
         # 提示开始加载模型
         InfoBar.info(
@@ -182,6 +189,7 @@ class InitWheatSeed:
         )
 
     def toggle_device(self):
+
         if self.cam_is_open:
             self.close_cam()
             if not self.cam_is_open:
@@ -411,10 +419,6 @@ class InitWheatSeed:
 
         # uuid随机一个file_name
         uid = str(uuid.uuid4().int)[:8]  # 生成 8 位短 UUID
-
-
-
-
         # 打开这一行，可以做到直接能够保存信息
         if self.EnableSaveInfo:
             if self.processed_img is None:
@@ -454,7 +458,25 @@ class InitWheatSeed:
         record = OrderedDict([("id", uid)] + list(record.items()))
         record['create_time'] = create_time
         record['file_path'] = file_path
+
+
+        self.balance_data = 27.96
         record['weight'] = self.balance_data
+
+
+
+        # 计算千粒重
+        num_seeds = record.get('num', 0)
+        # 处理天平重量：如果None或未设置，默认为0
+        total_weight = self.balance_data if self.balance_data is not None else 0.0
+        if num_seeds == 0 or self.balance_data <= 0:
+            record['thousand_seed_weight'] = 0.0  # 或返回None，根据需求调整
+            # 计算千粒重：(总重量 / 种子数) * 1000
+        thousand_seed_weight = (self.balance_data / num_seeds) * 1000
+
+        # 保存到record（可选：四舍五入到小数点后2位）
+        record['thousand_seed_weight'] = round(thousand_seed_weight, 2)
+
 
         # 保存数据到 JSON
         cam_tool.save_to_json(self.DataFile, record)
@@ -509,25 +531,25 @@ class InitWheatSeed:
     def process_img(self):
         # 可以继续采集
         print('进入process_img')
-        # # 停止线程
-        # self.close_cam()
-        # if self.last_frame is None:
-        #     return
-        #
-        # # 显示loading动画
-        # self.ui.tab_1.loading_movie.start()  # 开始播放动画
-        # self.ui.tab_1.loading_label.show()
-        # self.ui.tab_1.loading_label.move(
-        #     self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.loading_label.width() // 2,
-        #     self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.loading_label.height() // 2
-        # )
-        # # 禁用按钮防止重复点击
-        # self.ui.tab_1.button_process_img.setEnabled(False)
-        # self.ui.tab_1.button_live_img.setEnabled(False)
+        # 停止线程
+        self.close_cam()
+        if self.last_frame is None:
+            return
+
+        # 显示loading动画
+        self.ui.tab_1.loading_movie.start()  # 开始播放动画
+        self.ui.tab_1.loading_label.show()
+        self.ui.tab_1.loading_label.move(
+            self.ui.tab_1.widget_display.width() // 2 - self.ui.tab_1.loading_label.width() // 2,
+            self.ui.tab_1.widget_display.height() // 2 - self.ui.tab_1.loading_label.height() // 2
+        )
+        # 禁用按钮防止重复点击
+        self.ui.tab_1.button_process_img.setEnabled(False)
+        self.ui.tab_1.button_live_img.setEnabled(False)
 
         # 这是调试用的，我不想拍摄画面，直接把图片写死
-        # tmp_img = cv2.imread(r'display_img/16.jpg')
-        # self.last_frame  = tmp_img
+        # tmp_img = cv2.imread(r'display_img/1.jpg')
+        # self.last_frame = tmp_img
         # 输入图像，处理图像
         # self.pod_thread = ImageProcessingThread(tmp_img,self.dect_model)
 
@@ -675,15 +697,21 @@ class InitWheatSeed:
             else:
                 df.to_excel(file_path, index=False, engine="openpyxl")
 
-            # 导出成功后，清空表格和删除 pod.json 数据
-            self.clear_table_and_json()
+
 
             QMessageBox.information(self.ui, "导出成功", f"数据已成功导出至:\n{file_path}", QMessageBox.Ok)
 
         except Exception as e:
             QMessageBox.warning(self.ui, "错误", f"导出失败: {str(e)}", QMessageBox.Ok)
 
+
+
     def clear_table_and_json(self):
+
+        # 清空前发出警告
+        reply = QMessageBox.question(self.ui, "清空确认", "确定要清空所有数据吗？", QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
         """ 清空 table_widget 和 pod.json 数据 """
         # 清空表格
         self.ui.tab_2.table_widget.setRowCount(0)
@@ -725,9 +753,11 @@ class InitWheatSeed:
             self.fill_inputs(result)
             return img  # 如果没有有效面积，返回原图
 
-        # 计算面积阈值（排除最小 select_area_radio %）
+        # 面积排序
         sorted_areas = sorted(areas)
+        # 计算保留的面积下限（排除最小 select_area_radio %）
         cutoff_index = int(len(sorted_areas) * (select_area_radio / 100.0))
+        # 小于这个面积的全部被过滤掉
         area_threshold = sorted_areas[cutoff_index] if cutoff_index < len(sorted_areas) else sorted_areas[-1]
 
         cnt = 0
@@ -753,25 +783,35 @@ class InitWheatSeed:
         self.fill_inputs(result)
 
         return img  # 返回绘制后的图像
+
     def paint_sahi_dect_result(self, results, img, select_confidence_radio, select_area_radio):
+        # 获取图像的高度、宽度和通道数
         h, w, _ = img.shape
+        # 计算点半径，基于图像最小边长，设置最小值为1
         point_radius = max(int(min(w, h) * 0.005), 1)
+        # 设置点的颜色为蓝色 (BGR格式)
         point_color = (0, 0, 243)
+        # 设置填充厚度为-1，表示填充圆
         thickness = -1
 
         boxes = results.object_prediction_list
 
         # 先按面积排序，找出面积的百分位阈值
+        # 取出所有面积
         areas = [box.bbox.area for box in boxes]
         if not areas:
             return img  # 没有结果直接返回原图
 
-        # 计算保留的面积下限（排除最小 select_area_radio %）
+        # 面积排序
         sorted_areas = sorted(areas)
+        # 计算保留的面积下限（排除最小 select_area_radio %）
         cutoff_index = int(len(sorted_areas) * (select_area_radio / 100.0))
+        # 小于这个面积的全部被过滤掉
         area_threshold = sorted_areas[cutoff_index] if cutoff_index < len(sorted_areas) else sorted_areas[-1]
 
         cnt = 0
+        length = 0
+        width = 0
         # 开始绘图
         for box in boxes:
             x1, y1, x2, y2 = box.bbox.to_xyxy()
@@ -779,6 +819,10 @@ class InitWheatSeed:
             confidence = box.score.value
             center_x = int((x1 + x2) / 2)
             center_y = int((y1 + y2) / 2)
+
+            # 换成cm
+            length += max(x2 - x1, y2 - y1) * self.CmPerPixel
+            width += min(x2 - x1, y2 - y1) * self.CmPerPixel
 
             # 过滤条件
             if confidence < (select_confidence_radio / 100.0):
@@ -788,11 +832,16 @@ class InitWheatSeed:
             cnt += 1
             cv2.circle(img, (center_x, center_y), point_radius, point_color, thickness)
 
-
+        print(f"cnt:{cnt}")
         # 传入的要是一个字典
         result = dict()
         # result["num"] = len(results[0])
         result["num"] = cnt
+        # 保留两位小数
+
+        result["length"] = round(length / cnt, 2)
+
+        result["width"] = round(width / cnt, 2)
         # 将结果填充到form
         self.fill_inputs(result)
 
@@ -800,12 +849,14 @@ class InitWheatSeed:
 
     def update_confidence_radio(self,val):
         self.select_confidence_radio = val
+        # self.processed_img = self.paint_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
         self.processed_img = self.paint_sahi_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
         self.display_image(self.processed_img)
 
 
     def  update_area_radio(self,val):
         self.select_area_radio = val
+        # self.processed_img = self.paint_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
         self.processed_img = self.paint_sahi_dect_result(self.dect_results, self.last_frame.copy(), self.select_confidence_radio, self.select_area_radio)
         self.display_image(self.processed_img)
 
