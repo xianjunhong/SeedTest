@@ -46,19 +46,18 @@ data/images/
 data/processed/
 data/records.json
 
-# Configuration (may contain sensitive info)
-config.ini
+
 
 # Build artifacts
 build/
-dist/KaoZhong/
+dist/
 
 # Installer output
 installer_output/
 
 # Drivers (too large, users install separately)
 MVS_STD_*.exe
-PL23XX*.exe
+
 
 # Temporary files
 *.log
