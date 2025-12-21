@@ -1,43 +1,75 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual environment
+# Virtual Environment
 venv/
-env/
-.venv/
 ENV/
+env/
 
 # PyCharm
 .idea/
 
-# VSCode
+# VS Code
 .vscode/
 
-# Jupyter Notebook Checkpoints
-.ipynb_checkpoints/
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Data files (user generated)
+data/acquisition/
+data/acquisition_records.json
+data/image_acquisition/
+data/images/
+data/processed/
+data/records.json
+
+# Configuration (may contain sensitive info)
+config.ini
+
+# Build artifacts
+build/
+dist/KaoZhong/
+
+# Installer output
+installer_output/
+
+# Drivers (too large, users install separately)
+MVS_STD_*.exe
+PL23XX*.exe
+
+# Temporary files
+*.log
+*.tmp
+*.bak
+~*
 
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Logs
-*.log
-
-# Compiled extensions
-*.so
-
-# Test coverage reports
-htmlcov/
-*.cover
-
-# Build and distribution
-build/
-dist/
-*.egg-info/
-
-# Ignore dataset or large file folders if needed
-data/
-*.h5
-*.ckpt
+# Models - tracked by Git LFS (see .gitattributes)
+# Don't ignore .pt files here, they're managed by Git LFS

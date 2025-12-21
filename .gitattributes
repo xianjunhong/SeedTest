@@ -1,1 +1,10 @@
+# Git LFS configuration for large files
+
+# Model files (PyTorch)
 *.pt filter=lfs diff=lfs merge=lfs -text
+
+# You can also add other large file types if needed:
+# *.pth filter=lfs diff=lfs merge=lfs -text
+# *.onnx filter=lfs diff=lfs merge=lfs -text
+# *.h5 filter=lfs diff=lfs merge=lfs -text
+# *.pb filter=lfs diff=lfs merge=lfs -text

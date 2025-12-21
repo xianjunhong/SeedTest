@@ -1,0 +1,28 @@
+SeedTest Installation Notes
+
+Important Information:
+
+1. Camera Driver Required
+   - This software requires Hikvision MVS SDK for camera functionality
+   - The installer will automatically install the driver (requires admin rights)
+
+2. Serial Port Driver (Optional)
+   - If you use a serial balance, PL23XX driver will be installed
+   - The installer will handle this automatically
+
+3. Driver Installation
+   - During installation, you will see "Installing Hikvision Camera Driver..."
+   - This process may take 3-5 minutes - please be patient
+   - Do NOT close the installer during driver installation
+
+4. First Run
+   - After installation, restart your computer
+   - Configure camera and balance settings in the "Settings" module
+   - Refer to the user manual for detailed instructions
+
+5. System Requirements
+   - Windows 10/11 (64-bit)
+   - Administrator privileges for driver installation
+   - At least 2GB free disk space
+
+For technical support, please contact: JinLab

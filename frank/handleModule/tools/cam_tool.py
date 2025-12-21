@@ -3,11 +3,13 @@
 
 # 将返回的错误码转换为十六进制显示
 import ctypes
+from ctypes import byref
 import json
 import os
 import subprocess
 import sys
 import traceback
+import numpy as np
 
 import cv2
 from PyQt5.QtCore import Qt
@@ -17,8 +19,10 @@ from serial.tools import list_ports
 # from frank.hikModule.MvCameraControl_class import MvCamera
 
 from ...hikModule.CameraParams_const import MV_USB_DEVICE
-from ...hikModule.CameraParams_header import MV_CC_DEVICE_INFO_LIST, MV_CC_DEVICE_INFO
+from ...hikModule.CameraParams_header import MV_CC_DEVICE_INFO_LIST, MV_CC_DEVICE_INFO, MV_FRAME_OUT
 from ...hikModule.MvCameraControl_class import MvCamera
+from ...hikModule.MvErrorDefine_const import MV_OK
+from ...hikModule.PixelType_header import PixelType_Gvsp_RGB8_Packed
 
 
 def ToHexStr(num):
@@ -115,7 +119,8 @@ def start_grab(cam):
     ret = cam.MV_CC_StartGrabbing()
     if ret != 0:
         print("开始取流失败! ret[0x%x]" % ret)
-        sys.exit()
+        return ret
+    return 0
 
 
 def load_json(DataFile):
@@ -165,3 +170,102 @@ def convert_cv_to_qimage(cv_img):
     qt_img = QImage(cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
     return qt_img.rgbSwapped()
 
+
+def get_image(cam):
+    """
+    从相机获取一帧图像
+    返回: (ret_code, image_array)
+    """
+    from ...hikModule.CameraParams_header import MV_FRAME_OUT
+    
+    try:
+        # 创建输出帧信息结构体
+        stOutFrame = MV_FRAME_OUT()
+        
+        # 获取图像缓冲区（超时时间1000ms）
+        ret = cam.MV_CC_GetImageBuffer(stOutFrame, 1000)
+        
+        if ret == MV_OK:
+            try:
+                # 获取图像数据长度
+                nFrameLen = stOutFrame.stFrameInfo.nFrameLen
+                
+                # 从缓冲区复制数据
+                image_data = (ctypes.c_ubyte * nFrameLen)()
+                ctypes.memmove(byref(image_data), stOutFrame.pBufAddr, nFrameLen)
+                
+                # 转换为numpy数组
+                image_array = np.frombuffer(image_data, dtype=np.uint8)
+                
+                # 根据像素格式处理
+                width = stOutFrame.stFrameInfo.nWidth
+                height = stOutFrame.stFrameInfo.nHeight
+                pixel_format = stOutFrame.stFrameInfo.enPixelType
+                
+                # 像素格式常量 (来自PixelType_header.py)
+                PixelType_Gvsp_BayerRG8 = 17301513    # 0x01080009
+                PixelType_Gvsp_BayerGB8 = 17301514    # 0x0108000A
+                PixelType_Gvsp_BayerGR8 = 17301512    # 0x01080008
+                PixelType_Gvsp_BayerBG8 = 17301515    # 0x0108000B
+                
+                # 判断像素格式（Bayer格式的图像数据是单通道）
+                if pixel_format == PixelType_Gvsp_BayerRG8:
+                    # BayerRG8格式 - 转为RGB（和老代码camera_thread.py一致）
+                    image = image_array.reshape((height, width))
+                    image = cv2.cvtColor(image, cv2.COLOR_BAYER_RG2RGB)
+                    
+                elif pixel_format == PixelType_Gvsp_RGB8_Packed or pixel_format == 0x02180014 or len(image_array) == width * height * 3:
+                    # RGB8格式或3通道数据，直接reshape
+                    image = image_array.reshape((height, width, 3))
+                    # RGB转BGR (OpenCV使用BGR)
+                    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                    
+                elif pixel_format == PixelType_Gvsp_BayerGB8 or pixel_format == 0x0108000A:
+                    # BayerGB8格式 - 直接转为BGR
+                    image = image_array.reshape((height, width))
+                    image = cv2.cvtColor(image, cv2.COLOR_BAYER_GB2BGR)
+                    
+                elif pixel_format == PixelType_Gvsp_BayerGR8 or pixel_format == 0x01080008:
+                    # BayerGR8格式 - 直接转为BGR
+                    image = image_array.reshape((height, width))
+                    image = cv2.cvtColor(image, cv2.COLOR_BAYER_GR2BGR)
+                    
+                elif pixel_format == PixelType_Gvsp_BayerBG8 or pixel_format == 0x0108000B:
+                    # BayerBG8格式 - 直接转为BGR
+                    image = image_array.reshape((height, width))
+                    image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
+                    
+                elif pixel_format == PixelType_Gvsp_Mono8 or len(image_array) == width * height:
+                    # Mono8灰度格式
+                    image = image_array.reshape((height, width))
+                    image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+                    
+                elif len(image_array) == width * height * 3:
+                    # 未知的3通道格式，直接reshape
+                    image = image_array.reshape((height, width, 3))
+                    
+                else:
+                    print(f"⚠️ 未知像素格式: {pixel_format:#x}, 数据大小: {len(image_array)}")
+                    cam.MV_CC_FreeImageBuffer(stOutFrame)
+                    return ret, None
+                
+                # 释放缓冲区
+                cam.MV_CC_FreeImageBuffer(stOutFrame)
+                
+                return MV_OK, image
+                
+            except Exception as e:
+                # 确保释放缓冲区
+                cam.MV_CC_FreeImageBuffer(stOutFrame)
+                print(f"图像处理异常: {e}")
+                import traceback
+                traceback.print_exc()
+                return ret, None
+        else:
+            return ret, None
+            
+    except Exception as e:
+        print(f"获取图像异常: {e}")
+        import traceback
+        traceback.print_exc()
+        return None, None
