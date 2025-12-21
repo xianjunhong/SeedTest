@@ -1,5 +1,7 @@
 # 🌾 SeedTest - 种子检测平台
 
+[English](README.md) | [中文](README_CN.md)
+
 专业的种子检测平台，具有自动化图像采集、AI驱动的种子检测和集成测量系统。
 
 ## ✨ 功能特性
