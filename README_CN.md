@@ -82,6 +82,19 @@ python start.py
 - 如果模型文件看起来很小（< 1 MB），说明还没有下载。请运行 `git lfs pull`。
 - 如果从源码运行，需要手动安装海康威视MVS SDK和PL23XX驱动。
 
+### 驱动安装（源码运行必需）
+
+如果从源码运行，需要手动安装以下驱动：
+
+1. **海康威视MVS SDK**（相机支持）
+   - 下载地址：[https://www.hikrobotics.com/cn/machinevision/service/download/](https://www.hikrobotics.com/cn/machinevision/service/download/)
+   - 根据您的相机类型（USB或GigE）下载对应的MVS SDK安装包
+
+2. **PL23XX串口驱动**（天平支持）
+   - 驱动文件：`PL23XX-M_LogoDriver_Setup_408_20220725.exe`（已包含在源码中）
+   - 运行安装程序并按照向导完成安装
+   - 安装完成后重启计算机
+
 ## 📥 下载模型文件
 
 本项目使用 **Git LFS** 管理大型模型文件。克隆仓库后，您需要单独下载模型。
