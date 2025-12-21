@@ -36,7 +36,7 @@ A professional seed inspection platform with automated image acquisition, AI-pow
 
 ### Option 1: Download Installer (Recommended)
 
-1. Download the latest `SeedTest_vX.X_Setup.exe` from [Releases](../../releases)
+1. Download the latest `SeedTest_vX.X_Setup.exe` from [Releases](https://github.com/xianjunhong/SeedTest/releases)
 2. Right-click the installer → "Run as administrator"
 3. Follow the installation wizard
 4. The installer will automatically install:
@@ -50,19 +50,97 @@ A professional seed inspection platform with automated image acquisition, AI-pow
 ### Option 2: Run from Source
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/SeedTest.git
+# 1. Clone the repository
+git clone https://github.com/xianjunhong/SeedTest.git
 cd SeedTest
 
-# Create conda environment
+# 2. Install Git LFS (required for model files)
+# Windows: Download from https://git-lfs.com/
+# After installation, run:
+git lfs install
+
+# 3. Download model files (IMPORTANT!)
+git lfs pull
+
+# 4. Verify models are downloaded correctly
+# Check file sizes (should be ~100-130 MB each)
+ls -lh models/*.pt
+# Expected: soybean_obb.pt (~101 MB), wheat_det.pt (~130 MB)
+
+# 5. Create conda environment
 conda env create -f environment.yaml
 conda activate SeedTest
 
-# Run the application
+# 6. Run the application
 python start.py
 ```
 
-**Note**: You'll need to install Hikvision MVS SDK and PL23XX driver manually if running from source.
+**Important Notes**:
+- **Model files are managed by Git LFS**. You must run `git lfs pull` after cloning to download the actual model files.
+- If model files appear very small (< 1 MB), they haven't been downloaded yet. Run `git lfs pull`.
+- You'll need to install Hikvision MVS SDK and PL23XX driver manually if running from source.
+
+## 📥 Downloading Model Files
+
+This project uses **Git LFS** to manage large model files. After cloning the repository, you need to download the models separately.
+
+### Automatic Download (Recommended)
+
+If you have Git LFS installed, models will download automatically during clone:
+
+```bash
+git clone https://github.com/xianjunhong/SeedTest.git
+cd SeedTest
+git lfs pull  # If models didn't download automatically
+```
+
+### Manual Download
+
+If automatic download fails or you don't have Git LFS:
+
+```bash
+# 1. Install Git LFS (if not installed)
+# Windows: https://git-lfs.com/
+# After installation:
+git lfs install
+
+# 2. Clone the repository
+git clone https://github.com/xianjunhong/SeedTest.git
+cd SeedTest
+
+# 3. Download LFS files
+git lfs pull
+```
+
+### Verify Models
+
+Check if models are downloaded correctly:
+
+```bash
+# Check LFS file status
+git lfs ls-files
+
+# Check file sizes (should be ~100-130 MB each)
+ls -lh models/*.pt
+```
+
+**Expected model files**:
+- `models/soybean_obb.pt` (~101 MB)
+- `models/wheat_det.pt` (~130 MB)
+
+### Troubleshooting
+
+**Problem**: Models are very small (< 1 MB)  
+**Solution**: Run `git lfs pull` to download actual files
+
+**Problem**: `git lfs: command not found`  
+**Solution**: Install Git LFS from https://git-lfs.com/
+
+**Problem**: LFS download fails  
+**Solution**: 
+- Check your network connection
+- Verify GitHub LFS quota (free tier: 1GB storage, 1GB/month bandwidth)
+- Try again: `git lfs pull`
 
 ## 🚀 Quick Start
 
@@ -98,9 +176,9 @@ SeedTest/
 │   ├── image_acquisition/  # Image acquisition module
 │   ├── seed_inspection/    # Seed inspection module
 │   └── settings/           # Settings module
-├── models/                  # YOLOv8 models
-│   ├── soybean_obb.pt     # Soybean detection model
-│   └── wheat_det.pt       # Wheat detection model
+├── models/                  # YOLOv8 models (Git LFS)
+│   ├── soybean_obb.pt     # Soybean detection model (~101 MB)
+│   └── wheat_det.pt       # Wheat detection model (~130 MB)
 ├── icons/                   # UI icons
 ├── 重新打包.bat            # Full rebuild script
 ├── 快速更新代码.bat        # Quick update script
