@@ -1,5 +1,7 @@
 # 🌾 SeedTest - Seed Inspection Platform
 
+[English](README.md) | [中文](README_CN.md)
+
 A professional seed inspection platform with automated image acquisition, AI-powered seed detection, and integrated measurement systems.
 
 ## ✨ Features
