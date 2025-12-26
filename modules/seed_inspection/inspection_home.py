@@ -4,7 +4,7 @@
 """
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                               QGroupBox, QLineEdit, QPushButton, QComboBox,
-                              QGridLayout, QSlider, QProgressBar)
+                              QGridLayout, QSlider, QProgressBar, QSizePolicy)
 from PyQt5.QtCore import Qt
 from qfluentwidgets import PrimaryPushButton, SpinBox, DoubleSpinBox
 import os
@@ -26,8 +26,10 @@ class InspectionHomePage(QWidget):
         
         # 图像显示
         self.widget_display = QLabel()
-        self.widget_display.setMinimumSize(640, 480)
-        self.widget_display.setMaximumSize(800, 600)
+        self.widget_display.setMinimumSize(480, 360)
+        # 移除最大尺寸限制，让显示区域自适应窗口大小
+        self.widget_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget_display.setScaledContents(False)
         self.widget_display.setStyleSheet("border: 2px solid #ccc; background-color: black;")
         self.widget_display.setAlignment(Qt.AlignCenter)
         self.widget_display.setText("相机未启动")

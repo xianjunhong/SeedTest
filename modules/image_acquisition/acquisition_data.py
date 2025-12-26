@@ -49,15 +49,9 @@ class AcquisitionDataPage(QWidget):
             "ID", "品种编号", "时间", "重量(g)", "文件名", "操作"
         ])
         
-        # 设置列宽
-        self.table.setColumnWidth(0, 80)   # ID
-        self.table.setColumnWidth(1, 120)  # 品种编号
-        self.table.setColumnWidth(2, 150)  # 时间
-        self.table.setColumnWidth(3, 80)   # 重量
-        self.table.setColumnWidth(4, 200)  # 文件名
-        self.table.setColumnWidth(5, 200)  # 操作 - 增大宽度容纳按钮
-        
         # 设置表格样式
+        from PyQt5.QtWidgets import QHeaderView
+        
         self.table.setAlternatingRowColors(True)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.verticalHeader().setVisible(False)
@@ -65,6 +59,20 @@ class AcquisitionDataPage(QWidget):
         
         # 设置行高
         self.table.verticalHeader().setDefaultSectionSize(45)  # 增加行高
+        
+        # 设置列的拉伸模式（响应式布局）
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Fixed)      # ID固定
+        header.setSectionResizeMode(1, QHeaderView.Stretch)    # 品种编号拉伸
+        header.setSectionResizeMode(2, QHeaderView.Stretch)    # 时间拉伸
+        header.setSectionResizeMode(3, QHeaderView.Fixed)      # 重量固定
+        header.setSectionResizeMode(4, QHeaderView.Stretch)    # 文件名拉伸
+        header.setSectionResizeMode(5, QHeaderView.Fixed)      # 操作固定
+        
+        # 只设置固定列的宽度
+        self.table.setColumnWidth(0, 80)   # ID
+        self.table.setColumnWidth(3, 80)   # 重量
+        self.table.setColumnWidth(5, 200)  # 操作按钮
         
         layout.addWidget(self.table)
         

@@ -40,13 +40,7 @@ env/
 
 # Packaging scripts (keep local only)
 make_installer.bat
-重新打包.bat
-快速更新代码.bat
-打包说明.md
-推送到GitHub指南.md
-Git_LFS配额管理指南.md
-推送*.bat
-推送到GitHub.bat
+打包命令.md
 installer_script.iss
 
 # Data files (user generated)
@@ -82,8 +76,7 @@ Thumbs.db
 desktop.ini
 
 # Documentation (keep only README files)
-使用说明.md
-快速开始.md
+
 
 # Models - tracked by Git LFS (see .gitattributes)
 # Don't ignore .pt files here, they're managed by Git LFS

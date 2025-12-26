@@ -22,7 +22,7 @@ from modules.settings.settings_ui import SettingsUI
 from modules.settings.settings_handler import SettingsHandler
 
 from modules.seed_inspection.model_selection_dialog import ModelSelectionDialog
-from until import create_centered_square_pixmap
+from utils import create_centered_square_pixmap
 
 
 class CardButton(QFrame):
@@ -297,6 +297,12 @@ class MainWindow(QWidget):
 
 def main():
     """主函数"""
+
+    # 高DPI支持
+    import os
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     app = QApplication(sys.argv)
     
     # 设置应用样式
@@ -310,5 +316,7 @@ def main():
 
 
 if __name__ == "__main__":
+    print("高DPI支持")
     main()
+
 

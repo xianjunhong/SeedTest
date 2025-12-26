@@ -1,3 +1,7 @@
+"""
+UI 工具函数
+提供图像处理、界面辅助等功能
+"""
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtCore import Qt
 
@@ -27,3 +31,4 @@ def create_centered_square_pixmap(icon_path: str, square_size: int) -> QPixmap:
     painter.end()
 
     return final_pixmap
+

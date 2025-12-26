@@ -2,7 +2,7 @@
 ROI可视化框选组件
 允许用户在相机预览上拖拽绘制矩形来设置ROI区域
 """
-from PyQt5.QtWidgets import QLabel, QMessageBox
+from PyQt5.QtWidgets import QLabel, QMessageBox, QSizePolicy
 from PyQt5.QtCore import Qt, QRect, QPoint, pyqtSignal
 from PyQt5.QtGui import QPainter, QPen, QColor, QPixmap
 import numpy as np
@@ -15,7 +15,9 @@ class ROISelector(QLabel):
     
     def __init__(self):
         super().__init__()
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(480, 360)  # 改为更小的最小尺寸，适应各种分辨率
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setScaledContents(False)
         self.setStyleSheet("border: 2px solid #1976d2; background-color: black;")
         self.setAlignment(Qt.AlignCenter)
         self.setText("请打开相机开始预览")

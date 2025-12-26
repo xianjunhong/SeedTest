@@ -82,6 +82,19 @@ python start.py
 - If model files appear very small (< 1 MB), they haven't been downloaded yet. Run `git lfs pull`.
 - You'll need to install Hikvision MVS SDK and PL23XX driver manually if running from source.
 
+### Driver Installation (Required for Source Installation)
+
+If you're running from source, you need to install the following drivers manually:
+
+1. **Hikvision MVS SDK** (for camera support)
+   - Download: [https://www.hikrobotics.com/cn/machinevision/service/download/](https://www.hikrobotics.com/cn/machinevision/service/download/)
+   - Install the MVS SDK package for your camera type (USB or GigE)
+
+2. **PL23XX Serial Driver** (for balance support)
+   - Driver file: `PL23XX-M_LogoDriver_Setup_408_20220725.exe` (included in source code)
+   - Run the installer and follow the installation wizard
+   - Restart your computer after installation
+
 ## 📥 Downloading Model Files
 
 This project uses **Git LFS** to manage large model files. After cloning the repository, you need to download the models separately.

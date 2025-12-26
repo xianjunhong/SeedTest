@@ -47,7 +47,9 @@ class InspectionDataPage(QWidget):
         ])
         
         # 设置表格样式
-        self.table_widget.horizontalHeader().setStretchLastSection(False)
+        from PyQt5.QtWidgets import QHeaderView
+        
+        self.table_widget.horizontalHeader().setStretchLastSection(True)
         self.table_widget.setAlternatingRowColors(True)
         self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
         self.table_widget.setEditTriggers(QTableWidget.NoEditTriggers)  # 禁止编辑
@@ -55,17 +57,25 @@ class InspectionDataPage(QWidget):
         # 设置行高
         self.table_widget.verticalHeader().setDefaultSectionSize(45)  # 增加行高
         
-        # 设置列宽
+        # 设置列的拉伸模式（响应式布局）
+        header = self.table_widget.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Fixed)      # ID固定
+        header.setSectionResizeMode(1, QHeaderView.Stretch)    # 时间拉伸
+        header.setSectionResizeMode(2, QHeaderView.Stretch)    # 模型拉伸
+        header.setSectionResizeMode(3, QHeaderView.Stretch)    # 品种编号拉伸
+        header.setSectionResizeMode(4, QHeaderView.Fixed)      # 数量固定
+        header.setSectionResizeMode(5, QHeaderView.Stretch)    # 平均长度拉伸
+        header.setSectionResizeMode(6, QHeaderView.Stretch)    # 平均宽度拉伸
+        header.setSectionResizeMode(7, QHeaderView.Fixed)      # 重量固定
+        header.setSectionResizeMode(8, QHeaderView.Fixed)      # 千粒重固定
+        header.setSectionResizeMode(9, QHeaderView.Fixed)      # 操作固定
+        
+        # 只设置固定列的宽度
         self.table_widget.setColumnWidth(0, 80)   # ID
-        self.table_widget.setColumnWidth(1, 150)  # 时间
-        self.table_widget.setColumnWidth(2, 120)  # 模型
-        self.table_widget.setColumnWidth(3, 100)  # 品种编号
         self.table_widget.setColumnWidth(4, 60)   # 数量
-        self.table_widget.setColumnWidth(5, 100)  # 平均长度
-        self.table_widget.setColumnWidth(6, 100)  # 平均宽度
         self.table_widget.setColumnWidth(7, 80)   # 重量
         self.table_widget.setColumnWidth(8, 90)   # 千粒重
-        self.table_widget.setColumnWidth(9, 200)  # 操作 - 增大宽度容纳按钮
+        self.table_widget.setColumnWidth(9, 200)  # 操作按钮
         
         layout.addWidget(self.table_widget)
         
