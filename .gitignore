@@ -39,17 +39,10 @@ env/
 *.spec
 
 # Packaging scripts (keep local only)
-make_installer.bat
-打包命令.md
 installer_script.iss
 
 # Data files (user generated)
-data/acquisition/
-data/acquisition_records.json
-data/image_acquisition/
-data/images/
-data/processed/
-data/records.json
+data/
 
 
 

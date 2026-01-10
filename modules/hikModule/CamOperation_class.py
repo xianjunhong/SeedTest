@@ -12,8 +12,8 @@ import os
 
 
 
-from ..hikModule.CameraParams_header import *
-from ..hikModule.MvCameraControl_class import *
+from .CameraParams_header import *
+from .MvCameraControl_class import *
 
 # 强制关闭线程
 def Async_raise(tid, exctype):

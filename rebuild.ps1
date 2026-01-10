@@ -30,7 +30,7 @@ Write-Host "[3/6] Running PyInstaller (10-15 minutes)..." -ForegroundColor Yello
 Write-Host "Please wait..." -ForegroundColor Gray
 Write-Host ""
 
-pyinstaller `
+C:\Users\Frank\.conda\envs\SeedTest\Scripts\pyinstaller.exe `
   --name="SeedTest" `
   --windowed `
   --icon="icons/app_icon.png" `

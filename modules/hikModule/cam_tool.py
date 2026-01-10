@@ -16,13 +16,13 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QMessageBox
 from serial.tools import list_ports
-# from frank.hikModule.MvCameraControl_class import MvCamera
 
-from ...hikModule.CameraParams_const import MV_USB_DEVICE
-from ...hikModule.CameraParams_header import MV_CC_DEVICE_INFO_LIST, MV_CC_DEVICE_INFO, MV_FRAME_OUT
-from ...hikModule.MvCameraControl_class import MvCamera
-from ...hikModule.MvErrorDefine_const import MV_OK
-from ...hikModule.PixelType_header import PixelType_Gvsp_RGB8_Packed
+
+from .CameraParams_const import MV_USB_DEVICE
+from .CameraParams_header import MV_CC_DEVICE_INFO_LIST, MV_CC_DEVICE_INFO, MV_FRAME_OUT
+from .MvCameraControl_class import MvCamera
+from .MvErrorDefine_const import MV_OK
+from .PixelType_header import PixelType_Gvsp_RGB8_Packed
 
 
 def ToHexStr(num):

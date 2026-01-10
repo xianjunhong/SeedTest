@@ -2,17 +2,16 @@
 相机基类
 封装海康相机的基础操作，供考种和图像采集模块继承
 """
-import cv2
 import numpy as np
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 
-from frank.hikModule.MvCameraControl_class import MvCamera
-from frank.hikModule.MvErrorDefine_const import MV_OK
-from frank.hikModule.CameraParams_const import MV_ACCESS_Exclusive
-from frank.hikModule.CameraParams_header import MVCC_INTVALUE
-from frank.handleModule.tools import cam_tool
-from frank.handleModule.CamOperation_class import CameraOperation
+
+from modules.hikModule.MvErrorDefine_const import MV_OK
+from modules.hikModule.CameraParams_const import MV_ACCESS_Exclusive
+from modules.hikModule.CameraParams_header import MVCC_INTVALUE
+from modules.hikModule import cam_tool
+from modules.hikModule.CamOperation_class import CameraOperation
 
 
 def align_roi_params(offset_x, offset_y, width, height, max_width, max_height, alignment=4):
@@ -175,7 +174,7 @@ class CameraBase:
             
             # 先尝试获取相机的最大分辨率
             try:
-                from frank.hikModule.CameraParams_header import MVCC_INTVALUE
+                from modules.hikModule.CameraParams_header import MVCC_INTVALUE
                 
                 stParam = MVCC_INTVALUE()
                 ret1 = self.cam.MV_CC_GetIntValue("WidthMax", stParam)
