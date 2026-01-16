@@ -14,6 +14,7 @@ class DataManager:
     def __init__(self, config_manager):
         self.config_manager = config_manager
         paths = config_manager.get_paths_config()
+        # records.json
         self.data_file = paths['data_file']
         self.images_folder = paths['images_folder']
         self.processed_folder = paths['processed_folder']
@@ -40,6 +41,7 @@ class DataManager:
             
             # 创建空 JSON 文件
             with open(self.data_file, 'w', encoding='utf-8') as f:
+                # ensure_ascii = False：中文不转义，直接保存 ✅
                 json.dump([], f, ensure_ascii=False, indent=4)
     
     def load_records(self):

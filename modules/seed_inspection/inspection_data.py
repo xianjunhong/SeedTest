@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                               QTableWidget, QTableWidgetItem, QMessageBox, QFileDialog)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from qfluentwidgets import PrimaryPushButton
+from qfluentwidgets import PrimaryPushButton, TableWidget
 import os
 
 
@@ -39,12 +39,14 @@ class InspectionDataPage(QWidget):
         layout.addLayout(btn_layout)
         
         # 表格
-        self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(10)
-        self.table_widget.setHorizontalHeaderLabels([
-            "ID", "时间", "模型", "品种编号", "数量", 
+        self.table_widget = TableWidget()
+
+        data_list = [
+            "ID", "时间", "模型", "品种编号", "数量",
             "平均长度(cm)", "平均宽度(cm)", "重量(g)", "千粒重(g)", "操作"
-        ])
+        ]
+        self.table_widget.setColumnCount(len(data_list))
+        self.table_widget.setHorizontalHeaderLabels(data_list)
         
         # 设置表格样式
         from PyQt5.QtWidgets import QHeaderView

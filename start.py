@@ -206,6 +206,16 @@ class MainWindow(QWidget):
         if page_name == "inspection":
             # 显示模型选择对话框
             dialog = ModelSelectionDialog(self.model_manager, self)
+            #dialog.exec_()  # 阻塞,必须先处理对话框. dialog.show()  # 不阻塞，立即继续执行
+            # 用户选择模型，点"确定"
+            # → 触发 accept()
+            # → super().accept() 关闭对话框
+            # → exec_() 返回 Accepted
+            # 用户点"取消"按钮
+            # → 触发 reject()
+            # → 对话框关闭
+            # → exec_() 返回 Rejected
+
             if dialog.exec_() == dialog.Accepted:
                 model_name = dialog.get_selected_model()
                 if model_name:
@@ -221,7 +231,7 @@ class MainWindow(QWidget):
                     self._create_acquisition_page()
                 elif page_name == "settings":
                     self._create_settings_page()
-        
+        # 上面都是创建页面，下面是切换页面
         # 切换页面
         if page_name in self.page_instances:
             self.current_page = self.page_instances[page_name]
@@ -311,6 +321,7 @@ def main():
     # 创建主窗口
     window = MainWindow()
     window.show()
+    # 任何 QWidget 在 show() 后，都会自动被 QApplication 管理
     
     sys.exit(app.exec_())
 

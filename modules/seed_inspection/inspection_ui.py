@@ -21,7 +21,7 @@ class InspectionUI(QWidget):
         """初始化UI"""
         layout = QVBoxLayout(self)
         
-        # 标签切换器
+        # 标签切换器。导航/标签栏
         self.pivot = SegmentedWidget()
         
         # 堆叠窗口
@@ -43,11 +43,22 @@ class InspectionUI(QWidget):
         self.stacked_widget.setCurrentWidget(self.home_page)
         self.pivot.setCurrentItem(self.home_page.objectName())
         
-        # 连接切换信号
-        self.pivot.currentItemChanged.connect(
-            lambda key: self.stacked_widget.setCurrentWidget(self.findChild(QWidget, key))
-        )
+       # 连接切换信号
+        self.pivot.currentItemChanged.connect(self.on_pivot_changed)
+
+    def on_pivot_changed(self, route_key):
+        """
+        标签切换时的回调
+        Args:
+            route_key (str): 标签的路由键，如 'home' 或 'data'
+        """
+        page = self.findChild(QWidget, route_key)
+        if page:
+            self.stacked_widget.setCurrentWidget(page)
     
+    # 把页面内容加入 stacked_widget
+    # 把标签按钮加入 pivot
+    # 两者通过 object_name 关联
     def add_page(self, widget, object_name, text):
         """添加页面"""
         widget.setObjectName(object_name)

@@ -54,6 +54,7 @@ class ModelManager:
         model_mapping = self._load_model_mapping()
         
         # 扫描 .pt 文件
+        # dict.get(key, default)
         model_files = [f for f in os.listdir(self.models_folder) if f.endswith('.pt')]
         
         models = []

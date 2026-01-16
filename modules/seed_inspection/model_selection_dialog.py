@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                               QMessageBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from qfluentwidgets import PrimaryPushButton
+from qfluentwidgets import PrimaryPushButton, PushButton
 
 
 class ModelSelectionDialog(QDialog):
@@ -62,6 +62,7 @@ class ModelSelectionDialog(QDialog):
         
         # 模型列表
         self.list_widget = QListWidget()
+        # 这个方法用于设置列表或表格的隔行变色效果，让界面更易读。
         self.list_widget.setAlternatingRowColors(True)
         self.list_widget.itemDoubleClicked.connect(self.accept)
         
@@ -71,17 +72,20 @@ class ModelSelectionDialog(QDialog):
         
         # 设置样式表 - 增加行高和内边距
         self.list_widget.setStyleSheet("""
+            QListWidget {
+                    outline: none;  /* 去掉整个列表的焦点框 */
+                }
+
             QListWidget::item {
                 padding: 12px;
                 border-bottom: 1px solid #e0e0e0;
+                
             }
             QListWidget::item:selected {
                 background-color: #1976d2;
                 color: white;
             }
-            QListWidget::item:hover {
-                background-color: #e3f2fd;
-            }
+           
         """)
         
         layout.addWidget(self.list_widget)
@@ -99,10 +103,10 @@ class ModelSelectionDialog(QDialog):
         # 按钮
         btn_layout = QHBoxLayout()
         
-        self.btn_refresh = QPushButton("刷新列表")
+        self.btn_refresh = PushButton("刷新列表")
         self.btn_refresh.clicked.connect(self.load_models)
         
-        self.btn_cancel = QPushButton("取消")
+        self.btn_cancel = PushButton("取消")
         self.btn_cancel.clicked.connect(self.reject)
         
         self.btn_ok = PrimaryPushButton("确定")
@@ -110,6 +114,7 @@ class ModelSelectionDialog(QDialog):
         self.btn_ok.setEnabled(False)
         
         btn_layout.addWidget(self.btn_refresh)
+        # 间隔
         btn_layout.addStretch()
         btn_layout.addWidget(self.btn_cancel)
         btn_layout.addWidget(self.btn_ok)
@@ -163,6 +168,7 @@ class ModelSelectionDialog(QDialog):
                 f"类型: {model_type.upper()}\n"
                 f"双击或点击确定以选择"
             )
+
             
             self.list_widget.addItem(item)
         
@@ -200,6 +206,7 @@ class ModelSelectionDialog(QDialog):
         if current_item:
             data = current_item.data(Qt.UserRole)
             self.selected_model = data['file']
+            # 调用父类方法关闭对话框
             super().accept()
         else:
             QMessageBox.warning(self, "提示", "请选择一个模型")

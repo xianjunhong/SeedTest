@@ -29,6 +29,7 @@ class InspectionHomePage(QWidget):
         self.widget_display.setMinimumSize(480, 360)
         # 移除最大尺寸限制，让显示区域自适应窗口大小
         self.widget_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # 拉伸时保持原始比例
         self.widget_display.setScaledContents(False)
         self.widget_display.setStyleSheet("border: 2px solid #ccc; background-color: black;")
         self.widget_display.setAlignment(Qt.AlignCenter)
