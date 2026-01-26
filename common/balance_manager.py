@@ -50,8 +50,6 @@ class BalanceThread(QThread):
             while self.running:
                 try:
                     loop_count += 1
-                    waiting = self.serial_connection.in_waiting
-                    
                     # 每5秒发送查询命令（某些天平需要）
                     if time.time() - last_report > 5:
                         last_report = time.time()
@@ -60,33 +58,33 @@ class BalanceThread(QThread):
                         except:
                             pass
                     
-                    if waiting > 0:
-                        # 使用 read_until 读取到 = 为止（保证读取完整数据包）
-                        try:
+                    # 检查缓冲区
+                    if self.serial_connection.in_waiting > 0:
+                        latest_weight = None
+                        read_count = 0
+                        
+                        # 快速读取所有待处理数据，只保留最新的
+                        while self.serial_connection.in_waiting > 0 and read_count < 10:
+                            read_count += 1
                             raw_data = self.serial_connection.read_until(b'=')
                             line = raw_data.decode('utf-8', errors='ignore').strip()
-                        except:
-                            line = ""
-                        
-                        if line:
-                            # 尝试解析重量数据
-                            weight = self._parse_weight(line)
                             
-                            if weight is not None:
-                                # 只检测负数异常
-                                if weight < 0:
-                                    self.error_occurred.emit(f"天平数据异常：负数 {weight}g")
-                                
-                                self.last_weight = weight
-                                self.data_received.emit(f"{weight:.2f}")
-                                self.error_count = 0  # 重置错误计数
-                            else:
-                                # 解析失败
-                                self.error_count += 1
-                                if self.error_count > self.max_errors:
-                                    self.error_occurred.emit(f"天平数据解析失败次数过多")
-                    
-                    time.sleep(0.1)  # 100ms 读取一次
+                            if line:
+                                weight = self._parse_weight(line)
+                                if weight is not None:
+                                    latest_weight = weight  # 更新为最新值
+                        
+                        # 只发送最新的重量值
+                        if latest_weight is not None:
+                            if latest_weight < 0:
+                                self.error_occurred.emit(f"天平数据异常：负数 {latest_weight}g")
+                            
+                            self.last_weight = latest_weight
+                            self.data_received.emit(f"{latest_weight:.2f}")
+                            self.error_count = 0
+                    else:
+                        # 没有数据时才休眠
+                        time.sleep(0.01)  # 10ms
                     
                 except serial.SerialException as e:
                     self.error_occurred.emit(f"串口错误: {str(e)}")
@@ -96,7 +94,7 @@ class BalanceThread(QThread):
                     self.error_count += 1
                     if self.error_count > self.max_errors:
                         self.error_occurred.emit(f"读取错误: {str(e)}")
-                        break
+                        break        
         
         except Exception as e:
             self.error_occurred.emit(f"天平连接失败: {str(e)}")

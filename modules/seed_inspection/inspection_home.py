@@ -106,7 +106,7 @@ class InspectionHomePage(QWidget):
         
         right_layout.addStretch()
         
-        main_layout.addLayout(right_layout, 2)
+        main_layout.addLayout(right_layout, 1)
     
     def _create_camera_group(self):
         """创建相机控制组"""
