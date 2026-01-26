@@ -41,5 +41,7 @@ class TestUtils:
         x = 100
         x += 12313
 
+    def add_news(self):
+        x = 20
 
 
