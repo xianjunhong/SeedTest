@@ -21,7 +21,12 @@ class TestUtils:
         Test quick_sort function
         """
         print("Testing quick_sort function...")
-        arr = [3, 6, 8, 10, 1, 2, 4, 5, 7, 9]
+        arr = [3, 6, 8, 10, 1, 2, 4, 5,13, 7, 9]
         sorted_arr = self.quick_sort(arr)
         print(f"Sorted array: {sorted_arr}")
+
+
+    def say_hello(self):
+        print("hello")
+
 
