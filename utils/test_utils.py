@@ -38,10 +38,6 @@ class TestUtils:
 
 
     def say_hello(self):
-        x = 100
-        x += 12313
-
-    def add_news(self):
-        x = 20
+        print("hello_world")
 
 
