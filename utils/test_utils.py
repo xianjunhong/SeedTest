@@ -27,6 +27,6 @@ class TestUtils:
 
 
     def say_hello(self):
-        print("hello")
+        print("hello_world")
 
 
