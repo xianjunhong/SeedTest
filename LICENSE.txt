@@ -1,7 +1,5 @@
-SeedTest Software License Agreement
+﻿SeedTest Software License Agreement
 
-This software is for academic and research purposes only.
-
+This software is for educational and research purposes only.
 Author: JinLab
 
-Copyright (c) 2025 JinLab. All rights reserved.
