@@ -31,6 +31,8 @@ class TestUtils:
 
 
     def say_hello(self):
-        print("hello")
+        x = 100
+        x += 1
+        
 
 
